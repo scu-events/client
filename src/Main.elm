@@ -39,6 +39,7 @@ import Html.Events
         )
 import Json.Decode as Json
 import Fuzzy exposing (match)
+import Http
 
 
 ---- MODEL ----
@@ -89,7 +90,7 @@ init =
       , now = Nothing
       , offset = 0
       }
-    , Task.perform UpdateCalendarDates Date.now
+    , Task.perform Initialize Date.now
     )
 
 
@@ -101,9 +102,10 @@ type Msg
     = AddMajor Major
     | RemoveMajor Major
     | UpdateCurrentMajor Major
-    | UpdateCalendarDates Date
+    | Initialize Date
     | PopulateCalendar (List String)
     | ChangeCalendar Int
+    | NewEvents (Result Http.Error (List Event))
     | NoOp
 
 
@@ -130,7 +132,7 @@ update msg model =
         UpdateCurrentMajor major ->
             ( { model | currentMajor = major }, Cmd.none )
 
-        UpdateCalendarDates date ->
+        Initialize date ->
             ( { model
                 | now = Just date
                 , events =
@@ -142,11 +144,14 @@ update msg model =
                       }
                     ]
               }
-            , Ports.populateCalendar
-                ([ year >> toString, month >> toString, day >> toString ]
-                    |> List.map ((|>) date)
-                    |> String.join " "
-                )
+            , Cmd.batch
+                [ Ports.populateCalendar
+                    ([ year >> toString, month >> toString, day >> toString ]
+                        |> List.map ((|>) date)
+                        |> String.join " "
+                    )
+                , Http.send NewEvents (Http.get "http://localhost:4000/events" eventsDecoder)
+                ]
             )
 
         PopulateCalendar res ->
@@ -171,8 +176,42 @@ update msg model =
                 )
             )
 
+        NewEvents result ->
+            case result of
+                Ok data ->
+                    ( { model | events = data }, Cmd.none )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
+
+
+date : Json.Decoder (Maybe Date)
+date =
+    let
+        convert : String -> Json.Decoder Date
+        convert raw =
+            case Date.fromString raw of
+                Ok date ->
+                    Json.succeed date
+
+                Err error ->
+                    Json.fail error
+    in
+        Json.string |> Json.andThen convert |> Json.maybe
+
+
+eventsDecoder : Json.Decoder (List Event)
+eventsDecoder =
+    Json.map5 Event
+        (Json.at [ "startDateTime" ] date)
+        (Json.at [ "endDateTime" ] date)
+        (Json.at [ "description" ] Json.string)
+        (Json.at [ "title" ] Json.string)
+        (Json.at [ "summary" ] Json.string)
+        |> Json.list
 
 
 
