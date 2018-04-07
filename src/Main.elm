@@ -49,8 +49,8 @@ type alias Major =
 
 
 type alias Event =
-    { startDateTime : Date
-    , endDateTime : Date
+    { startDateTime : Maybe Date
+    , endDateTime : Maybe Date
     , description : String
     , title : String
     , summary : String
@@ -63,7 +63,7 @@ type alias Model =
     , majorOptions : List Major
     , events : List Event
     , dates : List (Maybe Date) -- annoying Maybe
-    , now : Maybe.Maybe Date
+    , now : Maybe Date
     , offset : Int
     }
 
@@ -131,7 +131,17 @@ update msg model =
             ( { model | currentMajor = major }, Cmd.none )
 
         UpdateCalendarDates date ->
-            ( { model | now = Just date }
+            ( { model
+                | now = Just date
+                , events =
+                    [ { startDateTime = Just date
+                      , endDateTime = Just date
+                      , description = "Event description ...."
+                      , title = "Event A"
+                      , summary = "test tsett tsett tsett tsett tsett tsett"
+                      }
+                    ]
+              }
             , Ports.populateCalendar
                 ([ year >> toString, month >> toString, day >> toString ]
                     |> List.map ((|>) date)
@@ -294,8 +304,30 @@ calendarView model =
             model.dates
                 |> List.map
                     (\x ->
-                        div [ class "calendar-date" ]
-                            [ button [ class "date-item" ] [ text (toDayString x) ] ]
+                        let
+                            events =
+                                model.events
+                                    |> List.filter
+                                        (\y ->
+                                            (y.startDateTime |> toMonthString)
+                                                == (x |> toMonthString)
+                                                && (y.startDateTime |> toDayString)
+                                                == (x |> toDayString)
+                                        )
+                                    |> List.map
+                                        (\z ->
+                                            a [ class "calendar-event is-primary" ] [ text z.title ]
+                                        )
+                        in
+                            div [ class "calendar-date" ]
+                                [ button [ class "date-item" ]
+                                    [ text
+                                        (toDayString x)
+                                    ]
+                                , div
+                                    [ class "calendar-events" ]
+                                    events
+                                ]
                     )
     in
         div [ class "calendar is-large" ]
