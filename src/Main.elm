@@ -133,25 +133,12 @@ update msg model =
             ( { model | currentMajor = major }, Cmd.none )
 
         Initialize date ->
-            ( { model
-                | now = Just date
-                , events =
-                    [ { startDateTime = Just date
-                      , endDateTime = Just date
-                      , description = "Event description ...."
-                      , title = "Event A"
-                      , summary = "test tsett tsett tsett tsett tsett tsett"
-                      }
-                    ]
-              }
-            , Cmd.batch
-                [ Ports.populateCalendar
-                    ([ year >> toString, month >> toString, day >> toString ]
-                        |> List.map ((|>) date)
-                        |> String.join " "
-                    )
-                , Http.send NewEvents (Http.get "http://localhost:4000/events" eventsDecoder)
-                ]
+            ( { model | now = Just date }
+            , Ports.populateCalendar
+                ([ year >> toString, month >> toString, day >> toString ]
+                    |> List.map ((|>) date)
+                    |> String.join " "
+                )
             )
 
         PopulateCalendar res ->
@@ -161,7 +148,19 @@ update msg model =
                         |> List.map
                             ((<|) (fromString >> Result.toMaybe))
               }
-            , Cmd.none
+            , Http.send NewEvents
+                (Http.get
+                    ([ "http://localhost:4000?month="
+                     , (model.now
+                            |> toMonthString
+                            |> String.split " "
+                            |> String.join "&year="
+                       )
+                     ]
+                        |> String.join ""
+                    )
+                    eventsDecoder
+                )
             )
 
         ChangeCalendar n ->
@@ -324,7 +323,7 @@ toCalendarStyle : Date -> String
 toCalendarStyle date =
     [ month >> toString, year >> toString ]
         |> List.map ((|>) date)
-        |> String.join "  "
+        |> String.join " "
 
 
 toMonthString : Maybe Date -> String
