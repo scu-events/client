@@ -60,6 +60,10 @@ type alias Event =
     }
 
 
+type alias Organization =
+    String
+
+
 
 -- majors, freeFood, volunteer are search filters
 
@@ -74,6 +78,9 @@ type alias Model =
     , offset : Int
     , freeFood : Bool
     , volunteer : Bool
+    , organizations : List Organization
+    , currentOrganization : String
+    , organizationOptions : List Organization
     }
 
 
@@ -99,6 +106,33 @@ init =
       , offset = 0
       , freeFood = False
       , volunteer = False
+      , organizations = []
+      , currentOrganization = ""
+      , organizationOptions =
+            [ "APB"
+            , "ASG"
+            , "Into the Wild"
+            , "KSCU"
+            , "MCC"
+            , "SCCAP"
+            , "Santa Clara Review"
+            , "The Redwood"
+            , "The Santa Clara"
+            , "Aerospace and Rocketry Club"
+            , "American Society of Civil Engineers"
+            , "American Society of Mechanical Engineers"
+            , "Associated General Contactors"
+            , "Association of Computing Machinery (ACM)"
+            , "Association for Computing and Machinery - Women's Chapter (ACM-W)"
+            , "Biomedical Engineering Society"
+            , "Engineers Without Borders"
+            , "Institute of Electrical and Electronics Engineers"
+            , "Maker Club"
+            , "National Society of Black Engineers"
+            , "Santa Clara Innovation and Design"
+            , "Santa Clara Theta Tau"
+            , "Society of Women Engineers"
+            ]
       }
     , Task.perform Initialize Date.now
     )
@@ -118,6 +152,9 @@ type Msg
     | NewEvents (Result Http.Error (List Event))
     | ToggleFreeFood
     | ToggleVolunteer
+    | AddOrganization Organization
+    | RemoveOrganization Organization
+    | UpdateCurrentOrganization Organization
     | NoOp
 
 
@@ -205,6 +242,34 @@ update msg model =
 
         ToggleVolunteer ->
             ( { model | volunteer = not model.volunteer }, Cmd.none )
+
+        AddOrganization organization ->
+            ( { model
+                | organizations = model.organizations ++ [ organization ]
+                , currentOrganization = ""
+                , organizationOptions = model.organizationOptions |> List.filter ((/=) organization)
+              }
+            , Cmd.none
+            )
+
+        RemoveOrganization organization ->
+            ( { model
+                | organizations =
+                    model.organizations
+                        |> List.filter
+                            ((/=)
+                                organization
+                            )
+                , organizationOptions =
+                    model.organizationOptions
+                        ++ [ organization
+                           ]
+              }
+            , Cmd.none
+            )
+
+        UpdateCurrentOrganization organization ->
+            ( { model | currentOrganization = organization }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -299,12 +364,12 @@ filterView model =
                             ]
                     )
 
-        simpleMatch major =
+        simpleMatchMajor major =
             match [] [] model.currentMajor major |> .score
 
-        panels =
+        majorPanels =
             (model.majorOptions
-                |> List.sortBy simpleMatch
+                |> List.sortBy simpleMatchMajor
                 |> List.take 4
                 |> List.map
                     (\major ->
@@ -315,6 +380,37 @@ filterView model =
                                     (AddMajor major)
                                 ]
                                 [ a [] [ text major ] ]
+                            ]
+                    )
+            )
+
+        organizations =
+            model.organizations
+                |> List.map
+                    (\organization ->
+                        span [ class "tag is-primary is-medium" ]
+                            [ text organization
+                            , button [ class "button delete", onClick (RemoveOrganization organization) ]
+                                []
+                            ]
+                    )
+
+        simpleMatchOrg org =
+            match [] [] model.currentOrganization org |> .score
+
+        organizationPanels =
+            (model.organizationOptions
+                |> List.sortBy simpleMatchOrg
+                |> List.take 4
+                |> List.map
+                    (\organization ->
+                        div [ class "panel-block" ]
+                            [ span
+                                [ class "major is-info"
+                                , onClick
+                                    (AddOrganization organization)
+                                ]
+                                [ a [] [ text organization ] ]
                             ]
                     )
             )
@@ -341,7 +437,21 @@ filterView model =
                         []
                     ]
                  ]
-                    ++ panels
+                    ++ majorPanels
+                )
+            , ul [] organizations
+            , div [ class "panel" ]
+                ([ div [ class "panel block" ]
+                    [ input
+                        [ class "input"
+                        , value model.currentOrganization
+                        , placeholder "Enter to add another organization"
+                        , onInput UpdateCurrentOrganization
+                        ]
+                        []
+                    ]
+                 ]
+                    ++ organizationPanels
                 )
             ]
 
