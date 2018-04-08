@@ -18,6 +18,7 @@ import Html
         , input
         , ul
         , hr
+        , label
         )
 import Html.Attributes
     exposing
@@ -28,6 +29,7 @@ import Html.Attributes
         , value
         , id
         , attribute
+        , type_
         )
 import Html.Events
     exposing
@@ -58,6 +60,10 @@ type alias Event =
     }
 
 
+
+-- majors, freeFood, volunteer are search filters
+
+
 type alias Model =
     { majors : List Major
     , currentMajor : String
@@ -66,6 +72,8 @@ type alias Model =
     , dates : List (Maybe Date) -- annoying Maybe
     , now : Maybe Date
     , offset : Int
+    , freeFood : Bool
+    , volunteer : Bool
     }
 
 
@@ -89,6 +97,8 @@ init =
       , dates = []
       , now = Nothing
       , offset = 0
+      , freeFood = False
+      , volunteer = False
       }
     , Task.perform Initialize Date.now
     )
@@ -106,6 +116,8 @@ type Msg
     | PopulateCalendar (List String)
     | ChangeCalendar Int
     | NewEvents (Result Http.Error (List Event))
+    | ToggleFreeFood
+    | ToggleVolunteer
     | NoOp
 
 
@@ -187,6 +199,12 @@ update msg model =
 
                 Err _ ->
                     ( model, Cmd.none )
+
+        ToggleFreeFood ->
+            ( { model | freeFood = not model.freeFood }, Cmd.none )
+
+        ToggleVolunteer ->
+            ( { model | volunteer = not model.volunteer }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -302,7 +320,16 @@ filterView model =
             )
     in
         div [ class "control" ]
-            [ ul [] majors
+            [ label [ class "checkbox" ]
+                [ input [ type_ "checkbox", onClick ToggleFreeFood ] []
+                , text "Free Food?"
+                ]
+            , label [ class "checkbox" ]
+                [ input [ type_ "checkbox", onClick ToggleVolunteer ]
+                    []
+                , text "Volunteer"
+                ]
+            , ul [] majors
             , div [ class "panel" ]
                 ([ div [ class "panel block" ]
                     [ input
