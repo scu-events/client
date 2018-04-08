@@ -142,26 +142,31 @@ update msg model =
             )
 
         PopulateCalendar res ->
-            ( { model
-                | dates =
-                    res
-                        |> List.map
-                            ((<|) (fromString >> Result.toMaybe))
-              }
-            , Http.send NewEvents
-                (Http.get
-                    ([ "http://localhost:4000?month="
-                     , (model.now
-                            |> toMonthString
-                            |> String.split " "
-                            |> String.join "&year="
-                       )
-                     ]
-                        |> String.join ""
+            let
+                dates =
+                    res |> List.map ((<|) (fromString >> Result.toMaybe))
+            in
+                ( { model
+                    | dates = dates
+                  }
+                , Http.send NewEvents
+                    (Http.get
+                        ([ "http://localhost:4000?month="
+                         , (dates
+                                |> List.drop 7
+                                |> List.head
+                                |> Maybe.withDefault model.now
+                                |> toMonthString
+                                |> String.toLower
+                                |> String.split " "
+                                |> String.join "&year="
+                           )
+                         ]
+                            |> String.join ""
+                        )
+                        eventsDecoder
                     )
-                    eventsDecoder
                 )
-            )
 
         ChangeCalendar n ->
             ( { model | offset = model.offset + n }
