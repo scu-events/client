@@ -52,8 +52,8 @@ type alias Major =
 
 
 type alias Event =
-    { startDateTime : Maybe Date
-    , endDateTime : Maybe Date
+    { start_date_time : Maybe Date
+    , end_date_time : Maybe Date
     , description : String
     , title : String
     , summary : String
@@ -200,7 +200,7 @@ update msg model =
                   }
                 , Http.send NewEvents
                     (Http.get
-                        ([ "http://localhost:4000?month="
+                        ([ "http://localhost:4000/api/events/?month="
                          , (dates
                                 |> List.drop 7
                                 |> List.head
@@ -262,8 +262,7 @@ update msg model =
                             )
                 , organizationOptions =
                     model.organizationOptions
-                        ++ [ organization
-                           ]
+                        ++ [ organization ]
               }
             , Cmd.none
             )
@@ -292,13 +291,15 @@ date =
 
 eventsDecoder : Json.Decoder (List Event)
 eventsDecoder =
-    Json.map5 Event
-        (Json.at [ "startDateTime" ] date)
-        (Json.at [ "endDateTime" ] date)
-        (Json.at [ "description" ] Json.string)
-        (Json.at [ "title" ] Json.string)
-        (Json.at [ "summary" ] Json.string)
-        |> Json.list
+    Json.at [ "data" ]
+        (Json.map5 Event
+            (Json.at [ "start_date_time" ] date)
+            (Json.at [ "end_date_time" ] date)
+            (Json.at [ "description" ] Json.string)
+            (Json.at [ "title" ] Json.string)
+            (Json.at [ "summary" ] Json.string)
+            |> Json.list
+        )
 
 
 
@@ -489,9 +490,9 @@ calendarView model =
                                 model.events
                                     |> List.filter
                                         (\y ->
-                                            (y.startDateTime |> toMonthString)
+                                            (y.start_date_time |> toMonthString)
                                                 == (x |> toMonthString)
-                                                && (y.startDateTime |> toDayString)
+                                                && (y.start_date_time |> toDayString)
                                                 == (x |> toDayString)
                                         )
                                     |> List.map
