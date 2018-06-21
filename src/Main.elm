@@ -30,6 +30,7 @@ import Html.Attributes
         , id
         , attribute
         , type_
+        , disabled
         )
 import Html.Events
     exposing
@@ -81,11 +82,16 @@ type alias Model =
     , organizations : List Organization
     , currentOrganization : String
     , organizationOptions : List Organization
+    , backendURL : String
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+type alias Flags =
+    { backendURL : String }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
     ( { majors = []
       , currentMajor = ""
       , majorOptions =
@@ -133,6 +139,7 @@ init =
             , "Santa Clara Theta Tau"
             , "Society of Women Engineers"
             ]
+      , backendURL = flags.backendURL
       }
     , Task.perform Initialize Date.now
     )
@@ -200,7 +207,7 @@ update msg model =
                   }
                 , Http.send NewEvents
                     (Http.get
-                        ([ "http://localhost:4000/api/events/?month="
+                        ([ model.backendURL ++ "/api/events/?month="
                          , (dates
                                 |> List.drop 7
                                 |> List.head
@@ -334,13 +341,13 @@ view model =
 
 headerView : Html Msg
 headerView =
-    header [ class "nav" ]
+    header [ class "navbar" ]
         [ div [ class "container" ]
-            [ div [ class "nav-left" ]
-                [ a [ href "#", class "nav-item is-active" ] [ text "SCU" ] ]
-            , div [ class "nav-right nav-menu" ]
-                [ span [ class "nav-item" ]
-                    [ a [ href "#", class "button is-info is-inverted" ]
+            [ div [ class "navbar-brand" ]
+                [ a [ href "#", class "navbar-item is-active" ] [ text "SCU Events" ] ]
+            , div [ class "navbar-end navbar-menu" ]
+                [ span [ class "navbar-item" ]
+                    [ button [ class "button is-info is-inverted", disabled True ]
                         [ span [ class "icon" ]
                             [ i [ class "fa fa-user" ] [] ]
                         , span [] [ text "Login" ]
@@ -514,7 +521,7 @@ calendarView model =
         div [ class "calendar is-large" ]
             [ div [ class "calendar-nav" ]
                 [ div [ class "calendar-nav-previous-month" ]
-                    [ button [ class "button is-text", onClick (ChangeCalendar -1) ]
+                    [ button [ class "button is-primary", onClick (ChangeCalendar -1) ]
                         [ i [ class "fa fa-chevron-left" ] [] ]
                     ]
                 , div []
@@ -527,7 +534,7 @@ calendarView model =
                         )
                     ]
                 , div [ class "calendar-nav-next-month" ]
-                    [ button [ class "button is-text", onClick (ChangeCalendar 1) ]
+                    [ button [ class "button is-primary", onClick (ChangeCalendar 1) ]
                         [ i [ class "fa fa-chevron-right" ] [] ]
                     ]
                 ]
@@ -551,9 +558,9 @@ subscriptions model =
 ---- PROGRAM ----
 
 
-main : Program Never Model Msg
+main : Program Flags Model Msg
 main =
-    Html.program
+    Html.programWithFlags
         { view = view
         , init = init
         , update = update
