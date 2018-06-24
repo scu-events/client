@@ -19,6 +19,9 @@ import Html
         , ul
         , hr
         , label
+        , p
+        , section
+        , footer
         )
 import Html.Attributes
     exposing
@@ -83,6 +86,7 @@ type alias Model =
     , currentOrganization : String
     , organizationOptions : List Organization
     , backendURL : String
+    , modalEvent : Maybe Event
     }
 
 
@@ -140,6 +144,7 @@ init flags =
             , "Society of Women Engineers"
             ]
       , backendURL = flags.backendURL
+      , modalEvent = Nothing
       }
     , Task.perform Initialize Date.now
     )
@@ -162,6 +167,8 @@ type Msg
     | AddOrganization Organization
     | RemoveOrganization Organization
     | UpdateCurrentOrganization Organization
+    | ShowEvent Event
+    | HideEvent
     | NoOp
 
 
@@ -276,6 +283,12 @@ update msg model =
 
         UpdateCurrentOrganization organization ->
             ( { model | currentOrganization = organization }, Cmd.none )
+
+        ShowEvent event ->
+            ( { model | modalEvent = Just event }, Cmd.none )
+
+        HideEvent ->
+            ( { model | modalEvent = Nothing }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -504,7 +517,7 @@ calendarView model =
                                         )
                                     |> List.map
                                         (\z ->
-                                            a [ class "calendar-event is-primary" ] [ text z.title ]
+                                            a [ class "calendar-event\n                                            is-primary", onClick (ShowEvent z) ] [ text z.title ]
                                         )
                         in
                             div [ class "calendar-date" ]
@@ -517,6 +530,32 @@ calendarView model =
                                     events
                                 ]
                     )
+
+        modal =
+            case model.modalEvent of
+                Just event ->
+                    div [ class "modal is-active" ]
+                        [ div [ class "modal-background" ]
+                            []
+                        , div [ class "modal-card" ]
+                            [ header [ class "modal-card-head" ]
+                                [ p [ class "modal-card-title" ]
+                                    [ text event.title ]
+                                , button
+                                    [ class "delete", onClick HideEvent ]
+                                    []
+                                ]
+                            , section [ class "modal-card-body" ]
+                                [ text event.description ]
+                            , footer [ class "modal-card-foot" ]
+                                [ button [ class "button is-success" ]
+                                    [ text "Add to your calendar" ]
+                                ]
+                            ]
+                        ]
+
+                Nothing ->
+                    div [] []
     in
         div [ class "calendar is-large" ]
             [ div [ class "calendar-nav" ]
@@ -542,6 +581,7 @@ calendarView model =
                 [ div [ class "calendar-header" ] calendarHeader
                 , div [ class "calendar-body" ] calendarBody
                 ]
+            , modal
             ]
 
 
