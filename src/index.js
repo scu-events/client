@@ -34,4 +34,18 @@ app.ports.repopulateCalendar.subscribe(([day, n]) => {
   app.ports.onPopulateCalendar.send(calendar);
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+  const navbarBurger = document.getElementById("navbar-burger");
+  navbarBurger.addEventListener('click', () => {
+
+    // Get the target from the "data-target" attribute
+    const target = document.getElementById(navbarBurger.dataset.target);
+
+    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+    navbarBurger.classList.toggle('is-active');
+    target.classList.toggle('is-active');
+
+  });
+});
+
 registerServiceWorker();

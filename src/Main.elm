@@ -259,9 +259,9 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ headerView
+        [ headerView model
         , div [ class "columns" ]
-            [ div [ class "column is-one-third" ]
+            [ div [ class "column is-one-third is-hidden-mobile" ]
                 [ h3 [] [ text "Filter" ]
                 , filterView model.majors model.currentMajor model.majorOptions model.organizations model.currentOrganization model.organizationOptions
                 ]
@@ -270,18 +270,37 @@ view model =
         ]
 
 
-headerView : Html Msg
-headerView =
-    header [ class "navbar" ]
-        [ div [ class "container" ]
-            [ div [ class "navbar-brand" ]
-                [ a [ href "#", class "navbar-item is-active" ] [ text "SCU Events" ] ]
-            , div [ class "navbar-end navbar-menu" ]
+headerView : Model -> Html Msg
+headerView model =
+    header [ class "navbar is-transparent" ]
+        [ div [ class "navbar-brand" ]
+            [ a [ href "#", class "navbar-item is-active" ] [ text "SCU Events" ]
+            , div [ class "navbar-burger burger", id "navbar-burger", attribute "data-target" "navbarItems" ]
+                [ span []
+                    []
+                , span []
+                    []
+                , span []
+                    []
+                ]
+            ]
+        , div [ class "navbar-menu", id "navbarItems" ]
+            [ div
+                [ class "navbar-end" ]
                 [ span [ class "navbar-item" ]
                     [ button [ class "button is-info is-inverted", disabled True ]
                         [ span [ class "icon" ]
                             [ i [ class "fa fa-user" ] [] ]
                         , span [] [ text "Login" ]
+                        ]
+                    , div [ class "is-hidden-desktop" ]
+                        [ filterView
+                            model.majors
+                            model.currentMajor
+                            model.majorOptions
+                            model.organizations
+                            model.currentOrganization
+                            model.organizationOptions
                         ]
                     ]
                 ]
