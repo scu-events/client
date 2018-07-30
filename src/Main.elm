@@ -35,6 +35,7 @@ import Html.Attributes
         , type_
         , disabled
         )
+import Html.Events exposing (onClick)
 import Http
 import Data.Event exposing (Event, eventsDecoder)
 import Data.Major exposing (Major)
@@ -63,6 +64,7 @@ type alias Model =
     , organizationOptions : List Organization
     , backendURL : String
     , modalEvent : Maybe Event
+    , navbarToggle : Bool
     }
 
 
@@ -121,6 +123,7 @@ init flags =
             ]
       , backendURL = flags.backendURL
       , modalEvent = Nothing
+      , navbarToggle = True
       }
     , Task.perform Initialize Date.now
     )
@@ -248,6 +251,9 @@ update msg model =
         HideEvent ->
             ( { model | modalEvent = Nothing }, Cmd.none )
 
+        ToggleNavbar ->
+            ( { model | navbarToggle = not model.navbarToggle }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -261,7 +267,7 @@ view model =
     div []
         [ headerView model
         , div [ class "columns" ]
-            [ div [ class "column is-one-third is-hidden-mobile" ]
+            [ div [ class "column is-one-third is-hidden-touch" ]
                 [ h3 [] [ text "Filter" ]
                 , filterView model.majors model.currentMajor model.majorOptions model.organizations model.currentOrganization model.organizationOptions
                 ]
@@ -275,7 +281,16 @@ headerView model =
     header [ class "navbar is-transparent" ]
         [ div [ class "navbar-brand" ]
             [ a [ href "#", class "navbar-item is-active" ] [ text "SCU Events" ]
-            , div [ class "navbar-burger burger", id "navbar-burger", attribute "data-target" "navbarItems" ]
+            , div
+                [ class
+                    ("navbar-burger burger "
+                        ++ if not model.navbarToggle then
+                            "is-active"
+                           else
+                            ""
+                    )
+                , onClick ToggleNavbar
+                ]
                 [ span []
                     []
                 , span []
@@ -284,7 +299,15 @@ headerView model =
                     []
                 ]
             ]
-        , div [ class "navbar-menu", id "navbarItems" ]
+        , div
+            [ class
+                ("navbar-menu "
+                    ++ if not model.navbarToggle then
+                        "is-active"
+                       else
+                        ""
+                )
+            ]
             [ div
                 [ class "navbar-end" ]
                 [ span [ class "navbar-item" ]

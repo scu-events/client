@@ -22,4 +22,5 @@ type Msg
     | UpdateCurrentOrganization Organization
     | ShowEvent Event
     | HideEvent
+    | ToggleNavbar
     | NoOp
