@@ -11,6 +11,7 @@ import Html
         , h3
         , img
         , header
+        , nav
         , a
         , span
         , i
@@ -278,9 +279,9 @@ view model =
 
 headerView : Model -> Html Msg
 headerView model =
-    header [ class "navbar is-transparent" ]
+    nav [ class "navbar is-transparent is-primary is-fixed" ]
         [ div [ class "navbar-brand" ]
-            [ a [ href "#", class "navbar-item is-active" ] [ text "SCU Events" ]
+            [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
             , div
                 [ class
                     ("navbar-burger burger "
