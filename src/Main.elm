@@ -42,6 +42,7 @@ import Data.Event exposing (Event, eventsDecoder)
 import Data.Major exposing (Major)
 import Data.Organization exposing (Organization)
 import Views.Calendar exposing (toMonthString, calendarView)
+import Views.Events exposing (eventsView)
 import Views.Filter exposing (filterView)
 import Msg exposing (..)
 
@@ -268,18 +269,19 @@ view model =
     div []
         [ headerView model
         , div [ class "columns" ]
-            [ div [ class "column is-one-third is-hidden-touch" ]
+            [ div [ class "column is-one-quarter is-hidden-touch" ]
                 [ h3 [] [ text "Filter" ]
                 , filterView model.majors model.currentMajor model.majorOptions model.organizations model.currentOrganization model.organizationOptions
                 ]
-            , div [ class "column is-two-third" ] [ calendarView model.dates model.events model.modalEvent ]
+            , div [ class "column is-two-quarter" ] [ eventsView model.events ]
+            , div [ class "column is-one-quarter" ] [ calendarView model.dates model.events model.modalEvent ]
             ]
         ]
 
 
 headerView : Model -> Html Msg
 headerView model =
-    nav [ class "navbar is-transparent is-primary is-fixed" ]
+    nav [ class "navbar is-transparent is-primary" ]
         [ div [ class "navbar-brand" ]
             [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
             , div

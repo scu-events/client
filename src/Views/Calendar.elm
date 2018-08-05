@@ -125,7 +125,7 @@ calendarView dates events modalEvent =
                 Nothing ->
                     div [] []
     in
-        div [ class "calendar is-large" ]
+        div [ class "calendar" ]
             [ div [ class "calendar-nav" ]
                 [ div [ class "calendar-nav-previous-month" ]
                     [ button [ class "button is-primary", onClick (ChangeCalendar -1) ]

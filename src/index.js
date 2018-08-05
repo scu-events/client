@@ -3,7 +3,7 @@ import { Main } from './Main.elm';
 import registerServiceWorker from './registerServiceWorker';
 import moment from 'moment';
 
-let app = Main.embed(document.getElementById('root'), { backendURL: process.env.ELM_APP_BACKEND_URL });
+let app = Main.embed(document.getElementById("root"), { backendURL: process.env.ELM_APP_BACKEND_URL });
 
 // TODO refactor
 app.ports.populateCalendar.subscribe((day) => {
