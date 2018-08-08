@@ -9,31 +9,16 @@ import Html
         , text
         , div
         , h3
-        , img
-        , header
         , nav
         , a
         , span
         , i
         , button
-        , input
-        , ul
-        , hr
-        , label
-        , p
-        , section
-        , footer
         )
 import Html.Attributes
     exposing
-        ( src
-        , class
+        ( class
         , href
-        , placeholder
-        , value
-        , id
-        , attribute
-        , type_
         , disabled
         )
 import Html.Events exposing (onClick)
@@ -41,10 +26,11 @@ import Http
 import Data.Event exposing (Event, eventsDecoder)
 import Data.Major exposing (Major)
 import Data.Organization exposing (Organization)
-import Views.Calendar exposing (toMonthString, calendarView)
+import Views.Calendar exposing (calendarView)
 import Views.Events exposing (eventsView)
 import Views.Filter exposing (filterView)
 import Msg exposing (..)
+import Utils.Time exposing (toMonthString)
 
 
 ---- MODEL ----

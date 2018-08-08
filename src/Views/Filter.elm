@@ -5,41 +5,21 @@ import Html
         ( Html
         , text
         , div
-        , h3
-        , img
-        , header
         , a
         , span
-        , i
         , button
         , input
         , ul
-        , hr
         , label
-        , p
-        , section
-        , footer
         )
 import Html.Attributes
     exposing
-        ( src
-        , class
-        , href
+        ( class
         , placeholder
         , value
-        , id
-        , attribute
         , type_
-        , disabled
         )
-import Html.Events
-    exposing
-        ( onInput
-        , onWithOptions
-        , keyCode
-        , defaultOptions
-        , onClick
-        )
+import Html.Events exposing (onInput, onClick)
 import Fuzzy exposing (match)
 import Data.Major exposing (Major)
 import Data.Organization exposing (Organization)
@@ -55,7 +35,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     (\major ->
                         span [ class "tag is-primary is-medium" ]
                             [ text major
-                            , button [ class "button delete", onClick (RemoveMajor major) ]
+                            , button [ class "delete", onClick (RemoveMajor major) ]
                                 []
                             ]
                     )
@@ -86,7 +66,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     (\organization ->
                         span [ class "tag is-primary is-medium" ]
                             [ text organization
-                            , button [ class "button delete", onClick (RemoveOrganization organization) ]
+                            , button [ class "delete", onClick (RemoveOrganization organization) ]
                                 []
                             ]
                     )

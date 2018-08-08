@@ -1,65 +1,33 @@
-module Views.Calendar exposing (toMonthString, calendarView)
+module Views.Calendar exposing (calendarView)
 
-import Date exposing (Date, day, month, year, fromString)
+import Date exposing (Date)
+import Utils.Time
+    exposing
+        ( timeToString
+        , toCalendarStyle
+        , toMonthString
+        , displayDate
+        , displayTime
+        , formatTime
+        , toDayString
+        )
 import Html
     exposing
         ( Html
         , text
         , div
-        , h3
-        , img
         , header
         , a
-        , span
         , i
         , button
-        , input
-        , ul
-        , hr
-        , label
         , p
         , section
         , footer
         )
-import Html.Attributes
-    exposing
-        ( src
-        , class
-        , href
-        , placeholder
-        , value
-        , id
-        , attribute
-        , type_
-        , disabled
-        )
-import Html.Events
-    exposing
-        ( onInput
-        , onWithOptions
-        , keyCode
-        , defaultOptions
-        , onClick
-        )
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Data.Event exposing (Event)
 import Msg exposing (..)
-
-
-toDayString : Maybe Date -> String
-toDayString =
-    Maybe.map day >> Maybe.withDefault 0 >> toString
-
-
-toCalendarStyle : Date -> String
-toCalendarStyle date =
-    [ month >> toString, year >> toString ]
-        |> List.map ((|>) date)
-        |> String.join " "
-
-
-toMonthString : Maybe Date -> String
-toMonthString =
-    Maybe.map toCalendarStyle >> Maybe.withDefault "Failed"
 
 
 calendarView : List (Maybe Date) -> List Event -> Maybe Event -> Html Msg
