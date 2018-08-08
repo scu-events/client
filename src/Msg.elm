@@ -7,6 +7,13 @@ import Data.Major exposing (Major)
 import Data.Organization exposing (Organization)
 
 
+type SearchFilter
+    = FeatureFilter
+    | OrganizationFilter
+    | MajorFilter
+    | None
+
+
 type Msg
     = AddMajor Major
     | RemoveMajor Major
@@ -23,4 +30,5 @@ type Msg
     | ShowEvent Event
     | HideEvent
     | ToggleNavbar
+    | ShowSearchFilter SearchFilter
     | NoOp

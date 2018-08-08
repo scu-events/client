@@ -53,6 +53,10 @@ type alias Model =
     , backendURL : String
     , modalEvent : Maybe Event
     , navbarToggle : Bool
+    , featureToggle : Bool
+    , majorsToggle : Bool
+    , organizationsToggle : Bool
+    , searchFilter : SearchFilter
     }
 
 
@@ -112,6 +116,10 @@ init flags =
       , backendURL = flags.backendURL
       , modalEvent = Nothing
       , navbarToggle = True
+      , featureToggle = False
+      , majorsToggle = False
+      , organizationsToggle = False
+      , searchFilter = None
       }
     , Task.perform Initialize Date.now
     )
@@ -242,6 +250,17 @@ update msg model =
         ToggleNavbar ->
             ( { model | navbarToggle = not model.navbarToggle }, Cmd.none )
 
+        ShowSearchFilter filter ->
+            ( { model
+                | searchFilter =
+                    if model.searchFilter == filter then
+                        None
+                    else
+                        filter
+              }
+            , Cmd.none
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -255,19 +274,15 @@ view model =
     div []
         [ headerView model
         , div [ class "columns" ]
-            [ div [ class "column is-one-quarter is-hidden-touch" ]
-                [ h3 [] [ text "Filter" ]
-                , filterView model.majors model.currentMajor model.majorOptions model.organizations model.currentOrganization model.organizationOptions
-                ]
-            , div [ class "column is-two-quarter" ] [ eventsView model.events ]
-            , div [ class "column is-one-quarter" ] [ calendarView model.dates model.events model.modalEvent ]
+            [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
+            , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
             ]
         ]
 
 
 headerView : Model -> Html Msg
 headerView model =
-    nav [ class "navbar is-transparent is-primary" ]
+    nav [ class "navbar is-fixed-top is-transparent" ]
         [ div [ class "navbar-brand" ]
             [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
             , div
@@ -297,22 +312,25 @@ headerView model =
                         ""
                 )
             ]
-            [ div
+            [ div [ class "navbar-start" ]
+                [ span [ class "navbar-item" ]
+                    [ filterView
+                        model.majors
+                        model.currentMajor
+                        model.majorOptions
+                        model.organizations
+                        model.currentOrganization
+                        model.organizationOptions
+                        model.searchFilter
+                    ]
+                ]
+            , div
                 [ class "navbar-end" ]
                 [ span [ class "navbar-item" ]
                     [ button [ class "button is-info is-inverted", disabled True ]
                         [ span [ class "icon" ]
                             [ i [ class "fa fa-user" ] [] ]
                         , span [] [ text "Login" ]
-                        ]
-                    , div [ class "is-hidden-desktop" ]
-                        [ filterView
-                            model.majors
-                            model.currentMajor
-                            model.majorOptions
-                            model.organizations
-                            model.currentOrganization
-                            model.organizationOptions
                         ]
                     ]
                 ]

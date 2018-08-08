@@ -11,6 +11,7 @@ import Html
         , input
         , ul
         , label
+        , i
         )
 import Html.Attributes
     exposing
@@ -26,8 +27,8 @@ import Data.Organization exposing (Organization)
 import Msg exposing (..)
 
 
-filterView : List Major -> Major -> List Major -> List Organization -> Organization -> List Organization -> Html Msg
-filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions =
+filterView : List Major -> Major -> List Major -> List Organization -> Organization -> List Organization -> SearchFilter -> Html Msg
+filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions searchFilter =
     let
         mjrs =
             majors
@@ -46,7 +47,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
         majorPanels =
             (majorOptions
                 |> List.sortBy simpleMatchMajor
-                |> List.take 4
+                |> List.take 3
                 |> List.map
                     (\major ->
                         div [ class "panel-block" ]
@@ -77,7 +78,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
         organizationPanels =
             (organizationOptions
                 |> List.sortBy simpleMatchOrg
-                |> List.take 4
+                |> List.take 3
                 |> List.map
                     (\organization ->
                         div [ class "panel-block" ]
@@ -91,42 +92,116 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     )
             )
     in
-        div [ class "control" ]
-            [ label [ class "checkbox" ]
-                [ input [ type_ "checkbox", onClick ToggleFreeFood ] []
-                , text "Free Food?"
-                ]
-            , label [ class "checkbox" ]
-                [ input [ type_ "checkbox", onClick ToggleVolunteer ]
-                    []
-                , text "Volunteer"
-                ]
-            , ul [] mjrs
-            , div [ class "panel" ]
-                ([ div [ class "panel block" ]
-                    [ input
-                        [ class "input"
-                        , value currentMajor
-                        , placeholder "Enter to add another major"
-                        , onInput UpdateCurrentMajor
-                        ]
-                        []
+        div [ class "columns" ]
+            [ div [ class "column" ]
+                [ div
+                    [ class
+                        ("dropdown "
+                            ++ if searchFilter == FeatureFilter then
+                                "is-active"
+                               else
+                                ""
+                        )
                     ]
-                 ]
-                    ++ majorPanels
-                )
-            , ul [] orgs
-            , div [ class "panel" ]
-                ([ div [ class "panel block" ]
-                    [ input
-                        [ class "input"
-                        , value currentOrganization
-                        , placeholder "Enter to add another organization"
-                        , onInput UpdateCurrentOrganization
+                    [ div [ class "dropdown-trigger" ]
+                        [ button
+                            [ class "button is-primary"
+                            , onClick (ShowSearchFilter FeatureFilter)
+                            ]
+                            [ text "Feature", i [ class "fa fa-angle-down" ] [] ]
                         ]
-                        []
+                    , div [ class "dropdown-menu" ]
+                        [ div [ class "dropdown-content" ]
+                            [ div [ class "dropdown-item" ]
+                                [ label [ class "checkbox" ]
+                                    [ input [ type_ "checkbox", onClick ToggleFreeFood ] []
+                                    , text "Free Food"
+                                    ]
+                                ]
+                            , div [ class "dropdown-item" ]
+                                [ label [ class "checkbox" ]
+                                    [ input [ type_ "checkbox", onClick ToggleVolunteer ]
+                                        []
+                                    , text "Volunteer"
+                                    ]
+                                ]
+                            ]
+                        ]
                     ]
-                 ]
-                    ++ organizationPanels
-                )
+                ]
+            , div [ class "column" ]
+                [ div
+                    [ class
+                        ("dropdown "
+                            ++ if searchFilter == MajorFilter then
+                                "is-active"
+                               else
+                                ""
+                        )
+                    ]
+                    [ div [ class "dropdown-trigger" ]
+                        [ button [ class "button is-primary", onClick (ShowSearchFilter MajorFilter) ]
+                            [ text "Majors", i [ class "fa fa-angle-down" ] [] ]
+                        ]
+                    , div [ class "dropdown-menu" ]
+                        [ div [ class "dropdown-content" ]
+                            [ div [ class "dropdown-item" ]
+                                [ ul [] mjrs
+                                , div [ class "panel" ]
+                                    ([ div [ class "panel block" ]
+                                        [ input
+                                            [ class "input"
+                                            , value currentMajor
+                                            , placeholder "Major"
+                                            , onInput UpdateCurrentMajor
+                                            ]
+                                            []
+                                        ]
+                                     ]
+                                        ++ majorPanels
+                                    )
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            , div [ class "column" ]
+                [ div
+                    [ class
+                        ("dropdown "
+                            ++ if searchFilter == OrganizationFilter then
+                                "is-active"
+                               else
+                                ""
+                        )
+                    ]
+                    [ div [ class "dropdown-trigger" ]
+                        [ button
+                            [ class "button is-primary"
+                            , onClick (ShowSearchFilter OrganizationFilter)
+                            ]
+                            [ text "Organizations", i [ class "fa fa-angle-down" ] [] ]
+                        ]
+                    , div [ class "dropdown-menu" ]
+                        [ div [ class "dropdown-content" ]
+                            [ div [ class "dropdown-item" ]
+                                [ ul [] orgs
+                                , div [ class "panel" ]
+                                    ([ div [ class "panel block" ]
+                                        [ input
+                                            [ class "input"
+                                            , value currentOrganization
+                                            , placeholder "Organization"
+                                            , onInput UpdateCurrentOrganization
+                                            ]
+                                            []
+                                        ]
+                                     ]
+                                        ++ organizationPanels
+                                    )
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ]
