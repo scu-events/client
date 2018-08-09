@@ -9,6 +9,7 @@ type alias Event =
     , end_date_time : Maybe Date
     , title : String
     , summary : String
+    , html_link : String
     }
 
 
@@ -30,10 +31,11 @@ date =
 eventsDecoder : Json.Decoder (List Event)
 eventsDecoder =
     Json.at [ "data" ]
-        (Json.map4 Event
+        (Json.map5 Event
             (Json.at [ "start_date_time" ] date)
             (Json.at [ "end_date_time" ] date)
             (Json.at [ "title" ] Json.string)
             (Json.at [ "summary" ] Json.string)
+            (Json.at [ "html_link" ] Json.string)
             |> Json.list
         )

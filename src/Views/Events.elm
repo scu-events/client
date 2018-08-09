@@ -50,7 +50,7 @@ eventView event =
                 [ text event.summary ]
             ]
         , footer [ class "card-footer" ]
-            [ a [ href "#", class "card-footer-item" ]
+            [ a [ href event.html_link, class "card-footer-item" ]
                 [ text "Add to Calendar" ]
             , a [ href "#", class "card-footer-item" ]
                 [ text "Invite friends" ]
