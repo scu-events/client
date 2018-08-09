@@ -7,7 +7,6 @@ import Json.Decode as Json
 type alias Event =
     { start_date_time : Maybe Date
     , end_date_time : Maybe Date
-    , description : String
     , title : String
     , summary : String
     }
@@ -31,10 +30,9 @@ date =
 eventsDecoder : Json.Decoder (List Event)
 eventsDecoder =
     Json.at [ "data" ]
-        (Json.map5 Event
+        (Json.map4 Event
             (Json.at [ "start_date_time" ] date)
             (Json.at [ "end_date_time" ] date)
-            (Json.at [ "description" ] Json.string)
             (Json.at [ "title" ] Json.string)
             (Json.at [ "summary" ] Json.string)
             |> Json.list

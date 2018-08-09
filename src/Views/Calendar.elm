@@ -82,7 +82,7 @@ calendarView dates events modalEvent =
                                     []
                                 ]
                             , section [ class "modal-card-body" ]
-                                [ text event.description ]
+                                [ text event.summary ]
                             , footer [ class "modal-card-foot" ]
                                 [ button [ class "button is-success" ]
                                     [ text "Add to your calendar" ]

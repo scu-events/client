@@ -57,6 +57,7 @@ type alias Model =
     , majorsToggle : Bool
     , organizationsToggle : Bool
     , searchFilter : SearchFilter
+    , error : String
     }
 
 
@@ -120,6 +121,7 @@ init flags =
       , majorsToggle = False
       , organizationsToggle = False
       , searchFilter = None
+      , error = ""
       }
     , Task.perform Initialize Date.now
     )
@@ -171,7 +173,7 @@ update msg model =
                   }
                 , Http.send NewEvents
                     (Http.get
-                        ([ model.backendURL ++ "/api/events/?month="
+                        ([ model.backendURL ++ "/api/events?month="
                          , (dates
                                 |> List.drop 7
                                 |> List.head
@@ -205,8 +207,8 @@ update msg model =
                 Ok data ->
                     ( { model | events = data }, Cmd.none )
 
-                Err _ ->
-                    ( model, Cmd.none )
+                Err err ->
+                    ( { model | error = toString err }, Cmd.none )
 
         ToggleFreeFood ->
             ( { model | freeFood = not model.freeFood }, Cmd.none )
@@ -282,60 +284,48 @@ view model =
 
 headerView : Model -> Html Msg
 headerView model =
-    nav [ class "navbar is-fixed-top is-transparent" ]
-        [ div [ class "navbar-brand" ]
-            [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
-            , div
-                [ class
-                    ("navbar-burger burger "
-                        ++ if not model.navbarToggle then
-                            "is-active"
-                           else
-                            ""
-                    )
-                , onClick ToggleNavbar
-                ]
-                [ span []
-                    []
-                , span []
-                    []
-                , span []
-                    []
-                ]
-            ]
-        , div
-            [ class
-                ("navbar-menu "
-                    ++ if not model.navbarToggle then
-                        "is-active"
-                       else
-                        ""
-                )
-            ]
-            [ div [ class "navbar-start" ]
-                [ span [ class "navbar-item" ]
-                    [ filterView
-                        model.majors
-                        model.currentMajor
-                        model.majorOptions
-                        model.organizations
-                        model.currentOrganization
-                        model.organizationOptions
-                        model.searchFilter
+    let
+        navbarState =
+            if not model.navbarToggle then
+                " is-active"
+            else
+                ""
+    in
+        nav [ class "navbar is-fixed-top is-transparent" ]
+            [ div [ class "navbar-brand" ]
+                [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
+                , div
+                    [ class ("navbar-burger burger" ++ navbarState)
+                    , onClick ToggleNavbar
                     ]
+                    (List.repeat 3 (span [] []))
                 ]
             , div
-                [ class "navbar-end" ]
-                [ span [ class "navbar-item" ]
-                    [ button [ class "button is-info is-inverted", disabled True ]
-                        [ span [ class "icon" ]
-                            [ i [ class "fa fa-user" ] [] ]
-                        , span [] [ text "Login" ]
+                [ class ("navbar-menu" ++ navbarState) ]
+                [ div [ class "navbar-start" ]
+                    [ span [ class "navbar-item" ]
+                        [ filterView
+                            model.majors
+                            model.currentMajor
+                            model.majorOptions
+                            model.organizations
+                            model.currentOrganization
+                            model.organizationOptions
+                            model.searchFilter
+                        ]
+                    ]
+                , div
+                    [ class "navbar-end" ]
+                    [ span [ class "navbar-item" ]
+                        [ button [ class "button is-info is-inverted", disabled True ]
+                            [ span [ class "icon" ]
+                                [ i [ class "fa fa-user" ] [] ]
+                            , span [] [ text "Login" ]
+                            ]
                         ]
                     ]
                 ]
             ]
-        ]
 
 
 
