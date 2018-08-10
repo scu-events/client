@@ -26,7 +26,7 @@ import Html.Events exposing (onClick)
 import Http
 import Data.Event exposing (Event, eventsDecoder)
 import Data.Major exposing (Major)
-import Data.Organization exposing (Organization)
+import Data.Organization as Organization
 import Data.Feature exposing (Feature)
 import Views.Calendar exposing (calendarView)
 import Views.Events exposing (eventsView)
@@ -39,16 +39,14 @@ import Utils.Time exposing (toMonthString)
 
 
 type alias Model =
-    { majors : List Major
+    { selectedMajors : List Major
     , currentMajor : Major
-    , majorOptions : List Major
+    , majors : List Major
     , events : List Event
     , dates : List (Maybe Date) -- annoying Maybe
     , now : Maybe Date
     , offset : Int
-    , organizations : List Organization
-    , currentOrganization : String
-    , organizationOptions : List Organization
+    , organizationModel : Organization.Model
     , backendURL : String
     , modalEvent : Maybe Event
     , navbarToggle : Bool
@@ -68,9 +66,9 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { majors = []
+    ( { selectedMajors = []
       , currentMajor = ""
-      , majorOptions =
+      , majors =
             [ "Philosophy"
             , "Computer Science"
             , "Math"
@@ -86,33 +84,35 @@ init flags =
       , dates = []
       , now = Nothing
       , offset = 0
-      , organizations = []
-      , currentOrganization = ""
-      , organizationOptions =
-            [ "APB"
-            , "ASG"
-            , "Into the Wild"
-            , "KSCU"
-            , "MCC"
-            , "SCCAP"
-            , "Santa Clara Review"
-            , "The Redwood"
-            , "The Santa Clara"
-            , "Aerospace and Rocketry Club"
-            , "American Society of Civil Engineers"
-            , "American Society of Mechanical Engineers"
-            , "Associated General Contactors"
-            , "Association of Computing Machinery (ACM)"
-            , "Association for Computing and Machinery - Women's Chapter (ACM-W)"
-            , "Biomedical Engineering Society"
-            , "Engineers Without Borders"
-            , "Institute of Electrical and Electronics Engineers"
-            , "Maker Club"
-            , "National Society of Black Engineers"
-            , "Santa Clara Innovation and Design"
-            , "Santa Clara Theta Tau"
-            , "Society of Women Engineers"
-            ]
+      , organizationModel =
+            { selected = []
+            , searching = ""
+            , list =
+                [ "APB"
+                , "ASG"
+                , "Into the Wild"
+                , "KSCU"
+                , "MCC"
+                , "SCCAP"
+                , "Santa Clara Review"
+                , "The Redwood"
+                , "The Santa Clara"
+                , "Aerospace and Rocketry Club"
+                , "American Society of Civil Engineers"
+                , "American Society of Mechanical Engineers"
+                , "Associated General Contactors"
+                , "Association of Computing Machinery (ACM)"
+                , "Association for Computing and Machinery - Women's Chapter (ACM-W)"
+                , "Biomedical Engineering Society"
+                , "Engineers Without Borders"
+                , "Institute of Electrical and Electronics Engineers"
+                , "Maker Club"
+                , "National Society of Black Engineers"
+                , "Santa Clara Innovation and Design"
+                , "Santa Clara Theta Tau"
+                , "Society of Women Engineers"
+                ]
+            }
       , backendURL = flags.backendURL
       , modalEvent = Nothing
       , navbarToggle = True
@@ -137,17 +137,17 @@ update msg model =
     case msg of
         AddMajor major ->
             ( { model
-                | majors = model.majors ++ [ major ]
+                | selectedMajors = model.selectedMajors ++ [ major ]
                 , currentMajor = ""
-                , majorOptions = model.majorOptions |> List.filter ((/=) major)
+                , majors = model.majors |> List.filter ((/=) major)
               }
             , Cmd.none
             )
 
         RemoveMajor major ->
             ( { model
-                | majors = model.majors |> List.filter ((/=) major)
-                , majorOptions = model.majorOptions ++ [ major ]
+                | selectedMajors = model.selectedMajors |> List.filter ((/=) major)
+                , majors = model.majors ++ [ major ]
               }
             , Cmd.none
             )
@@ -232,32 +232,16 @@ update msg model =
                     , Cmd.none
                     )
 
-        AddOrganization organization ->
-            ( { model
-                | organizations = model.organizations ++ [ organization ]
-                , currentOrganization = ""
-                , organizationOptions = model.organizationOptions |> List.filter ((/=) organization)
-              }
-            , Cmd.none
-            )
-
-        RemoveOrganization organization ->
-            ( { model
-                | organizations =
-                    model.organizations
-                        |> List.filter
-                            ((/=)
-                                organization
-                            )
-                , organizationOptions =
-                    model.organizationOptions
-                        ++ [ organization ]
-              }
-            , Cmd.none
-            )
-
-        UpdateCurrentOrganization organization ->
-            ( { model | currentOrganization = organization }, Cmd.none )
+        OrganizationMsg subMsg ->
+            let
+                ( orgModel, orgCmd ) =
+                    Organization.update subMsg model.organizationModel
+            in
+                ( { model | organizationModel = orgModel }
+                , Cmd.map
+                    OrganizationMsg
+                    orgCmd
+                )
 
         ShowEvent event ->
             ( { model | modalEvent = Just event }, Cmd.none )
@@ -294,12 +278,10 @@ view model =
         , div [ class "columns is-hidden-touch" ]
             [ div [ class "column is-10 is-offset-1" ]
                 [ filterView
-                    model.majors
+                    model.selectedMajors
                     model.currentMajor
-                    model.majorOptions
-                    model.organizations
-                    model.currentOrganization
-                    model.organizationOptions
+                    model.majors
+                    model.organizationModel
                     model.searchFilter
                     model.features
                     model.selectedFeatures
@@ -334,12 +316,10 @@ headerView model =
                 [ class ("navbar-menu" ++ navbarState) ]
                 [ div [ class "navbar-start is-hidden-desktop" ]
                     [ filterView
-                        model.majors
+                        model.selectedMajors
                         model.currentMajor
-                        model.majorOptions
-                        model.organizations
-                        model.currentOrganization
-                        model.organizationOptions
+                        model.majors
+                        model.organizationModel
                         model.searchFilter
                         model.features
                         model.selectedFeatures

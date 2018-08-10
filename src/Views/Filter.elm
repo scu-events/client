@@ -6,7 +6,6 @@ import Html
         , text
         , div
         , a
-        , span
         , button
         , input
         , label
@@ -15,6 +14,7 @@ import Html
 import Html.Attributes
     exposing
         ( class
+        , id
         , placeholder
         , value
         , type_
@@ -22,7 +22,7 @@ import Html.Attributes
 import Html.Events exposing (onInput, onClick)
 import Fuzzy exposing (match)
 import Data.Major exposing (Major)
-import Data.Organization exposing (Organization)
+import Data.Organization as Organization
 import Data.Feature exposing (Feature)
 import Msg exposing (..)
 
@@ -31,14 +31,12 @@ filterView :
     List Major
     -> Major
     -> List Major
-    -> List Organization
-    -> Organization
-    -> List Organization
+    -> Organization.Model
     -> SearchFilter
     -> List Feature
     -> List Feature
     -> Html Msg
-filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions searchFilter features selectedFeatures =
+filterView majors currentMajor majorOptions organizationModel searchFilter features selectedFeatures =
     let
         featuresTags =
             features
@@ -46,11 +44,11 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     (\feature ->
                         case List.member feature selectedFeatures of
                             True ->
-                                a [ class "tag is-primary is-medium is-rounded", onClick (ToggleFeature feature) ]
+                                div [ id "feature-tag", class "tag is-primary is-medium is-rounded", onClick (ToggleFeature feature) ]
                                     [ text feature ]
 
                             False ->
-                                a [ class "tag is-light is-medium is-rounded", onClick (ToggleFeature feature) ]
+                                div [ id "feature-tag", class "tag is-light is-medium is-rounded", onClick (ToggleFeature feature) ]
                                     [ text feature ]
                     )
 
@@ -75,7 +73,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                 |> List.map
                     (\major ->
                         div [ class "panel-block" ]
-                            [ span
+                            [ div
                                 [ class "major is-info"
                                 , onClick
                                     (AddMajor major)
@@ -86,30 +84,39 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
             )
 
         orgs =
-            organizations
+            organizationModel.selected
                 |> List.map
                     (\organization ->
                         div [ class "tag is-primary is-medium is-rounded" ]
                             [ text organization
-                            , button [ class "delete", onClick (RemoveOrganization organization) ]
+                            , button
+                                [ class "delete"
+                                , onClick
+                                    (OrganizationMsg
+                                        (Organization.Deselect organization)
+                                    )
+                                ]
                                 []
                             ]
                     )
+
+        currentOrganization =
+            organizationModel.searching
 
         simpleMatchOrg org =
             match [] [] currentOrganization org |> .score
 
         organizationPanels =
-            (organizationOptions
+            (organizationModel.list
                 |> List.sortBy simpleMatchOrg
                 |> List.take 3
                 |> List.map
                     (\organization ->
                         div [ class "panel-block" ]
-                            [ span
+                            [ div
                                 [ class "major is-info"
                                 , onClick
-                                    (AddOrganization organization)
+                                    (OrganizationMsg (Organization.Select organization))
                                 ]
                                 [ a [] [ text organization ] ]
                             ]
@@ -187,7 +194,10 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                                                     [ class "input"
                                                     , value currentOrganization
                                                     , placeholder "Organization"
-                                                    , onInput UpdateCurrentOrganization
+                                                    , onInput
+                                                        (OrganizationMsg
+                                                            << Organization.UpdateSearch
+                                                        )
                                                     ]
                                                     []
                                                 ]
