@@ -14,6 +14,7 @@ import Html
         , span
         , i
         , button
+        , ul
         )
 import Html.Attributes
     exposing
@@ -288,53 +289,27 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let
-        features =
-            model.selectedFeatures
-                |> List.map
-                    (\feature ->
-                        span [ class "tag is-primary is-medium is-rounded" ]
-                            [ text feature
-                            , button [ class "delete", onClick (ToggleFeature feature) ]
-                                []
-                            ]
-                    )
-
-        majors =
-            model.majors
-                |> List.map
-                    (\major ->
-                        span [ class "tag is-primary is-medium is-rounded" ]
-                            [ text major
-                            , button [ class "delete", onClick (RemoveMajor major) ]
-                                []
-                            ]
-                    )
-
-        organizations =
-            model.organizations
-                |> List.map
-                    (\organization ->
-                        span [ class "tag is-primary is-medium is-rounded" ]
-                            [ text organization
-                            , button [ class "delete", onClick (RemoveOrganization organization) ]
-                                []
-                            ]
-                    )
-    in
-        div []
-            [ headerView model
-            , div [ class "columns" ]
-                [ div [ class "column is-10 is-offset-1" ]
-                    [ div [ class "is-pulled-left" ]
-                        (features ++ majors ++ organizations)
-                    ]
-                ]
-            , div [ class "columns" ]
-                [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
-                , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+    div []
+        [ headerView model
+        , div [ class "columns is-hidden-touch" ]
+            [ div [ class "column is-10 is-offset-1" ]
+                [ filterView
+                    model.majors
+                    model.currentMajor
+                    model.majorOptions
+                    model.organizations
+                    model.currentOrganization
+                    model.organizationOptions
+                    model.searchFilter
+                    model.features
+                    model.selectedFeatures
                 ]
             ]
+        , div [ class "columns" ]
+            [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
+            , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+            ]
+        ]
 
 
 headerView : Model -> Html Msg
@@ -346,7 +321,7 @@ headerView model =
             else
                 ""
     in
-        nav [ class "navbar is-fixed-top is-transparent" ]
+        nav [ class "navbar is-transparent" ]
             [ div [ class "navbar-brand" ]
                 [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
                 , div
@@ -357,21 +332,19 @@ headerView model =
                 ]
             , div
                 [ class ("navbar-menu" ++ navbarState) ]
-                [ div [ class "navbar-start" ]
-                    [ span [ class "navbar-item" ]
-                        [ filterView
-                            model.majors
-                            model.currentMajor
-                            model.majorOptions
-                            model.organizations
-                            model.currentOrganization
-                            model.organizationOptions
-                            model.searchFilter
-                            model.features
-                        ]
+                [ div [ class "navbar-start is-hidden-desktop" ]
+                    [ filterView
+                        model.majors
+                        model.currentMajor
+                        model.majorOptions
+                        model.organizations
+                        model.currentOrganization
+                        model.organizationOptions
+                        model.searchFilter
+                        model.features
+                        model.selectedFeatures
                     ]
-                , div
-                    [ class "navbar-end" ]
+                , div [ class "navbar-end" ]
                     [ span [ class "navbar-item" ]
                         [ button [ class "button is-info is-inverted", disabled True ]
                             [ span [ class "icon" ]

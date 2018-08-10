@@ -27,11 +27,46 @@ import Data.Feature exposing (Feature)
 import Msg exposing (..)
 
 
-filterView : List Major -> Major -> List Major -> List Organization -> Organization -> List Organization -> SearchFilter -> List Feature -> Html Msg
-filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions searchFilter features =
+filterView :
+    List Major
+    -> Major
+    -> List Major
+    -> List Organization
+    -> Organization
+    -> List Organization
+    -> SearchFilter
+    -> List Feature
+    -> List Feature
+    -> Html Msg
+filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions searchFilter features selectedFeatures =
     let
+        featuresTags =
+            features
+                |> List.map
+                    (\feature ->
+                        case List.member feature selectedFeatures of
+                            True ->
+                                a [ class "tag is-primary is-medium is-rounded", onClick (ToggleFeature feature) ]
+                                    [ text feature ]
+
+                            False ->
+                                a [ class "tag is-light is-medium is-rounded", onClick (ToggleFeature feature) ]
+                                    [ text feature ]
+                    )
+
         simpleMatchMajor major =
             match [] [] currentMajor major |> .score
+
+        mjrs =
+            majors
+                |> List.map
+                    (\major ->
+                        div [ class "tag is-primary is-medium is-rounded" ]
+                            [ text major
+                            , button [ class "delete", onClick (RemoveMajor major) ]
+                                []
+                            ]
+                    )
 
         majorPanels =
             (majorOptions
@@ -49,6 +84,17 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                             ]
                     )
             )
+
+        orgs =
+            organizations
+                |> List.map
+                    (\organization ->
+                        div [ class "tag is-primary is-medium is-rounded" ]
+                            [ text organization
+                            , button [ class "delete", onClick (RemoveOrganization organization) ]
+                                []
+                            ]
+                    )
 
         simpleMatchOrg org =
             match [] [] currentOrganization org |> .score
@@ -70,113 +116,86 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     )
             )
     in
-        div [ class "columns" ]
-            [ div [ class "column" ]
-                [ div
-                    [ class
-                        ("dropdown "
-                            ++ if searchFilter == FeatureFilter then
-                                "is-active"
-                               else
-                                ""
-                        )
-                    ]
-                    [ div [ class "dropdown-trigger" ]
-                        [ button
-                            [ class "button is-primary"
-                            , onClick (ShowSearchFilter FeatureFilter)
-                            ]
-                            [ text "Feature", i [ class "fa fa-angle-down" ] [] ]
+        div []
+            [ div [ class "columns" ]
+                [ div [ class "column is-clearfix" ]
+                    [ div
+                        [ class
+                            "is-pulled-left"
                         ]
-                    , div [ class "dropdown-menu" ]
-                        [ div [ class "dropdown-content" ]
-                            (features
-                                |> List.map
-                                    (\feature ->
-                                        div [ class "dropdown-item" ]
-                                            [ label [ class "checkbox" ]
+                        (featuresTags ++ mjrs ++ orgs)
+                    ]
+                ]
+            , div [ class "columns" ]
+                [ div [ class "column is-clearfix" ]
+                    [ div [ class "is-pulled-left" ]
+                        [ div
+                            [ class
+                                ("dropdown "
+                                    ++ if searchFilter == MajorFilter then
+                                        "is-active"
+                                       else
+                                        ""
+                                )
+                            ]
+                            [ div [ class "dropdown-trigger" ]
+                                [ button [ class "button is-primary", onClick (ShowSearchFilter MajorFilter) ]
+                                    [ text "Majors", i [ class "fa fa-angle-down" ] [] ]
+                                ]
+                            , div [ class "dropdown-menu" ]
+                                [ div [ class "dropdown-content" ]
+                                    [ div [ class "dropdown-item" ]
+                                        [ div [ class "panel" ]
+                                            ([ div [ class "panel block" ]
                                                 [ input
-                                                    [ type_ "checkbox"
-                                                    , onClick
-                                                        (ToggleFeature feature)
+                                                    [ class "input"
+                                                    , value currentMajor
+                                                    , placeholder "Major"
+                                                    , onInput UpdateCurrentMajor
                                                     ]
                                                     []
-                                                , text feature
                                                 ]
-                                            ]
-                                    )
-                            )
-                        ]
-                    ]
-                ]
-            , div [ class "column" ]
-                [ div
-                    [ class
-                        ("dropdown "
-                            ++ if searchFilter == MajorFilter then
-                                "is-active"
-                               else
-                                ""
-                        )
-                    ]
-                    [ div [ class "dropdown-trigger" ]
-                        [ button [ class "button is-primary", onClick (ShowSearchFilter MajorFilter) ]
-                            [ text "Majors", i [ class "fa fa-angle-down" ] [] ]
-                        ]
-                    , div [ class "dropdown-menu" ]
-                        [ div [ class "dropdown-content" ]
-                            [ div [ class "dropdown-item" ]
-                                [ div [ class "panel" ]
-                                    ([ div [ class "panel block" ]
-                                        [ input
-                                            [ class "input"
-                                            , value currentMajor
-                                            , placeholder "Major"
-                                            , onInput UpdateCurrentMajor
-                                            ]
-                                            []
+                                             ]
+                                                ++ majorPanels
+                                            )
                                         ]
-                                     ]
-                                        ++ majorPanels
-                                    )
+                                    ]
                                 ]
                             ]
-                        ]
-                    ]
-                ]
-            , div [ class "column" ]
-                [ div
-                    [ class
-                        ("dropdown "
-                            ++ if searchFilter == OrganizationFilter then
-                                "is-active"
-                               else
-                                ""
-                        )
-                    ]
-                    [ div [ class "dropdown-trigger" ]
-                        [ button
-                            [ class "button is-primary"
-                            , onClick (ShowSearchFilter OrganizationFilter)
+                        , div
+                            [ class
+                                ("dropdown "
+                                    ++ if searchFilter == OrganizationFilter then
+                                        "is-active"
+                                       else
+                                        ""
+                                )
                             ]
-                            [ text "Organizations", i [ class "fa fa-angle-down" ] [] ]
-                        ]
-                    , div [ class "dropdown-menu" ]
-                        [ div [ class "dropdown-content" ]
-                            [ div [ class "dropdown-item" ]
-                                [ div [ class "panel" ]
-                                    ([ div [ class "panel block" ]
-                                        [ input
-                                            [ class "input"
-                                            , value currentOrganization
-                                            , placeholder "Organization"
-                                            , onInput UpdateCurrentOrganization
-                                            ]
-                                            []
+                            [ div [ class "dropdown-trigger" ]
+                                [ button
+                                    [ class "button is-primary"
+                                    , onClick (ShowSearchFilter OrganizationFilter)
+                                    ]
+                                    [ text "Organizations", i [ class "fa fa-angle-down" ] [] ]
+                                ]
+                            , div [ class "dropdown-menu" ]
+                                [ div [ class "dropdown-content" ]
+                                    [ div [ class "dropdown-item" ]
+                                        [ div [ class "panel" ]
+                                            ([ div [ class "panel block" ]
+                                                [ input
+                                                    [ class "input"
+                                                    , value currentOrganization
+                                                    , placeholder "Organization"
+                                                    , onInput UpdateCurrentOrganization
+                                                    ]
+                                                    []
+                                                ]
+                                             ]
+                                                ++ organizationPanels
+                                            )
                                         ]
-                                     ]
-                                        ++ organizationPanels
-                                    )
+                                    ]
                                 ]
                             ]
                         ]
