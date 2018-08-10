@@ -9,7 +9,6 @@ import Html
         , span
         , button
         , input
-        , ul
         , label
         , i
         )
@@ -24,23 +23,13 @@ import Html.Events exposing (onInput, onClick)
 import Fuzzy exposing (match)
 import Data.Major exposing (Major)
 import Data.Organization exposing (Organization)
+import Data.Feature exposing (Feature)
 import Msg exposing (..)
 
 
-filterView : List Major -> Major -> List Major -> List Organization -> Organization -> List Organization -> SearchFilter -> Html Msg
-filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions searchFilter =
+filterView : List Major -> Major -> List Major -> List Organization -> Organization -> List Organization -> SearchFilter -> List Feature -> Html Msg
+filterView majors currentMajor majorOptions organizations currentOrganization organizationOptions searchFilter features =
     let
-        mjrs =
-            majors
-                |> List.map
-                    (\major ->
-                        span [ class "tag is-primary is-medium" ]
-                            [ text major
-                            , button [ class "delete", onClick (RemoveMajor major) ]
-                                []
-                            ]
-                    )
-
         simpleMatchMajor major =
             match [] [] currentMajor major |> .score
 
@@ -60,17 +49,6 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                             ]
                     )
             )
-
-        orgs =
-            organizations
-                |> List.map
-                    (\organization ->
-                        span [ class "tag is-primary is-medium" ]
-                            [ text organization
-                            , button [ class "delete", onClick (RemoveOrganization organization) ]
-                                []
-                            ]
-                    )
 
         simpleMatchOrg org =
             match [] [] currentOrganization org |> .score
@@ -112,20 +90,22 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                         ]
                     , div [ class "dropdown-menu" ]
                         [ div [ class "dropdown-content" ]
-                            [ div [ class "dropdown-item" ]
-                                [ label [ class "checkbox" ]
-                                    [ input [ type_ "checkbox", onClick ToggleFreeFood ] []
-                                    , text "Free Food"
-                                    ]
-                                ]
-                            , div [ class "dropdown-item" ]
-                                [ label [ class "checkbox" ]
-                                    [ input [ type_ "checkbox", onClick ToggleVolunteer ]
-                                        []
-                                    , text "Volunteer"
-                                    ]
-                                ]
-                            ]
+                            (features
+                                |> List.map
+                                    (\feature ->
+                                        div [ class "dropdown-item" ]
+                                            [ label [ class "checkbox" ]
+                                                [ input
+                                                    [ type_ "checkbox"
+                                                    , onClick
+                                                        (ToggleFeature feature)
+                                                    ]
+                                                    []
+                                                , text feature
+                                                ]
+                                            ]
+                                    )
+                            )
                         ]
                     ]
                 ]
@@ -146,8 +126,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     , div [ class "dropdown-menu" ]
                         [ div [ class "dropdown-content" ]
                             [ div [ class "dropdown-item" ]
-                                [ ul [] mjrs
-                                , div [ class "panel" ]
+                                [ div [ class "panel" ]
                                     ([ div [ class "panel block" ]
                                         [ input
                                             [ class "input"
@@ -185,8 +164,7 @@ filterView majors currentMajor majorOptions organizations currentOrganization or
                     , div [ class "dropdown-menu" ]
                         [ div [ class "dropdown-content" ]
                             [ div [ class "dropdown-item" ]
-                                [ ul [] orgs
-                                , div [ class "panel" ]
+                                [ div [ class "panel" ]
                                     ([ div [ class "panel block" ]
                                         [ input
                                             [ class "input"

@@ -26,6 +26,7 @@ import Http
 import Data.Event exposing (Event, eventsDecoder)
 import Data.Major exposing (Major)
 import Data.Organization exposing (Organization)
+import Data.Feature exposing (Feature)
 import Views.Calendar exposing (calendarView)
 import Views.Events exposing (eventsView)
 import Views.Filter exposing (filterView)
@@ -34,7 +35,6 @@ import Utils.Time exposing (toMonthString)
 
 
 ---- MODEL ----
--- majors, freeFood, volunteer are search filters
 
 
 type alias Model =
@@ -45,8 +45,6 @@ type alias Model =
     , dates : List (Maybe Date) -- annoying Maybe
     , now : Maybe Date
     , offset : Int
-    , freeFood : Bool
-    , volunteer : Bool
     , organizations : List Organization
     , currentOrganization : String
     , organizationOptions : List Organization
@@ -58,6 +56,8 @@ type alias Model =
     , organizationsToggle : Bool
     , searchFilter : SearchFilter
     , error : String
+    , features : List Feature
+    , selectedFeatures : List Feature
     }
 
 
@@ -85,8 +85,6 @@ init flags =
       , dates = []
       , now = Nothing
       , offset = 0
-      , freeFood = False
-      , volunteer = False
       , organizations = []
       , currentOrganization = ""
       , organizationOptions =
@@ -122,6 +120,8 @@ init flags =
       , organizationsToggle = False
       , searchFilter = None
       , error = ""
+      , features = [ "free food", "volunteer" ]
+      , selectedFeatures = []
       }
     , Task.perform Initialize Date.now
     )
@@ -210,11 +210,26 @@ update msg model =
                 Err err ->
                     ( { model | error = toString err }, Cmd.none )
 
-        ToggleFreeFood ->
-            ( { model | freeFood = not model.freeFood }, Cmd.none )
+        ToggleFeature feature ->
+            case List.member feature model.selectedFeatures of
+                True ->
+                    ( { model
+                        | selectedFeatures =
+                            model.selectedFeatures
+                                |> List.filter ((/=) feature)
+                      }
+                    , Cmd.none
+                    )
 
-        ToggleVolunteer ->
-            ( { model | volunteer = not model.volunteer }, Cmd.none )
+                False ->
+                    ( { model
+                        | selectedFeatures =
+                            model.selectedFeatures
+                                ++ [ feature
+                                   ]
+                      }
+                    , Cmd.none
+                    )
 
         AddOrganization organization ->
             ( { model
@@ -273,13 +288,53 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ headerView model
-        , div [ class "columns" ]
-            [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
-            , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+    let
+        features =
+            model.selectedFeatures
+                |> List.map
+                    (\feature ->
+                        span [ class "tag is-primary is-medium is-rounded" ]
+                            [ text feature
+                            , button [ class "delete", onClick (ToggleFeature feature) ]
+                                []
+                            ]
+                    )
+
+        majors =
+            model.majors
+                |> List.map
+                    (\major ->
+                        span [ class "tag is-primary is-medium is-rounded" ]
+                            [ text major
+                            , button [ class "delete", onClick (RemoveMajor major) ]
+                                []
+                            ]
+                    )
+
+        organizations =
+            model.organizations
+                |> List.map
+                    (\organization ->
+                        span [ class "tag is-primary is-medium is-rounded" ]
+                            [ text organization
+                            , button [ class "delete", onClick (RemoveOrganization organization) ]
+                                []
+                            ]
+                    )
+    in
+        div []
+            [ headerView model
+            , div [ class "columns" ]
+                [ div [ class "column is-10 is-offset-1" ]
+                    [ div [ class "is-pulled-left" ]
+                        (features ++ majors ++ organizations)
+                    ]
+                ]
+            , div [ class "columns" ]
+                [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
+                , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+                ]
             ]
-        ]
 
 
 headerView : Model -> Html Msg
@@ -312,6 +367,7 @@ headerView model =
                             model.currentOrganization
                             model.organizationOptions
                             model.searchFilter
+                            model.features
                         ]
                     ]
                 , div
