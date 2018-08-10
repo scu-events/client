@@ -21,22 +21,20 @@ import Html.Attributes
         )
 import Html.Events exposing (onInput, onClick)
 import Fuzzy exposing (match)
-import Data.Major exposing (Major)
+import Data.Major as Major
 import Data.Organization as Organization
 import Data.Feature exposing (Feature)
 import Msg exposing (..)
 
 
 filterView :
-    List Major
-    -> Major
-    -> List Major
+    Major.Model
     -> Organization.Model
     -> SearchFilter
     -> List Feature
     -> List Feature
     -> Html Msg
-filterView majors currentMajor majorOptions organizationModel searchFilter features selectedFeatures =
+filterView majorModel organizationModel searchFilter features selectedFeatures =
     let
         featuresTags =
             features
@@ -52,22 +50,25 @@ filterView majors currentMajor majorOptions organizationModel searchFilter featu
                                     [ text feature ]
                     )
 
+        currentMajor =
+            majorModel.searching
+
         simpleMatchMajor major =
             match [] [] currentMajor major |> .score
 
         mjrs =
-            majors
+            majorModel.selected
                 |> List.map
                     (\major ->
                         div [ class "tag is-primary is-medium is-rounded" ]
                             [ text major
-                            , button [ class "delete", onClick (RemoveMajor major) ]
+                            , button [ class "delete", onClick (MajorMsg (Major.Deselect major)) ]
                                 []
                             ]
                     )
 
         majorPanels =
-            (majorOptions
+            (majorModel.list
                 |> List.sortBy simpleMatchMajor
                 |> List.take 3
                 |> List.map
@@ -76,7 +77,7 @@ filterView majors currentMajor majorOptions organizationModel searchFilter featu
                             [ div
                                 [ class "major is-info"
                                 , onClick
-                                    (AddMajor major)
+                                    (MajorMsg (Major.Select major))
                                 ]
                                 [ a [] [ text major ] ]
                             ]
@@ -158,7 +159,10 @@ filterView majors currentMajor majorOptions organizationModel searchFilter featu
                                                     [ class "input"
                                                     , value currentMajor
                                                     , placeholder "Major"
-                                                    , onInput UpdateCurrentMajor
+                                                    , onInput
+                                                        (MajorMsg
+                                                            << Major.UpdateSearch
+                                                        )
                                                     ]
                                                     []
                                                 ]

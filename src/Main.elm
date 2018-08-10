@@ -25,7 +25,7 @@ import Html.Attributes
 import Html.Events exposing (onClick)
 import Http
 import Data.Event exposing (Event, eventsDecoder)
-import Data.Major exposing (Major)
+import Data.Major as Major
 import Data.Organization as Organization
 import Data.Feature exposing (Feature)
 import Views.Calendar exposing (calendarView)
@@ -39,9 +39,7 @@ import Utils.Time exposing (toMonthString)
 
 
 type alias Model =
-    { selectedMajors : List Major
-    , currentMajor : Major
-    , majors : List Major
+    { majorModel : Major.Model
     , events : List Event
     , dates : List (Maybe Date) -- annoying Maybe
     , now : Maybe Date
@@ -66,20 +64,22 @@ type alias Flags =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { selectedMajors = []
-      , currentMajor = ""
-      , majors =
-            [ "Philosophy"
-            , "Computer Science"
-            , "Math"
-            , "Physics"
-            , "Chemistry"
-            , "Biology"
-            , "Biochemistry"
-            , "Mechanical Engineering"
-            , "Aerospace"
-            , "English"
-            ]
+    ( { majorModel =
+            { selected = []
+            , searching = ""
+            , list =
+                [ "Philosophy"
+                , "Computer Science"
+                , "Math"
+                , "Physics"
+                , "Chemistry"
+                , "Biology"
+                , "Biochemistry"
+                , "Mechanical Engineering"
+                , "Aerospace"
+                , "English"
+                ]
+            }
       , events = []
       , dates = []
       , now = Nothing
@@ -135,26 +135,6 @@ init flags =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        AddMajor major ->
-            ( { model
-                | selectedMajors = model.selectedMajors ++ [ major ]
-                , currentMajor = ""
-                , majors = model.majors |> List.filter ((/=) major)
-              }
-            , Cmd.none
-            )
-
-        RemoveMajor major ->
-            ( { model
-                | selectedMajors = model.selectedMajors |> List.filter ((/=) major)
-                , majors = model.majors ++ [ major ]
-              }
-            , Cmd.none
-            )
-
-        UpdateCurrentMajor major ->
-            ( { model | currentMajor = major }, Cmd.none )
-
         Initialize date ->
             ( { model | now = Just date }
             , Ports.populateCalendar
@@ -243,6 +223,17 @@ update msg model =
                     orgCmd
                 )
 
+        MajorMsg subMsg ->
+            let
+                ( majorModel, majorCmd ) =
+                    Major.update subMsg model.majorModel
+            in
+                ( { model | majorModel = majorModel }
+                , Cmd.map
+                    MajorMsg
+                    majorCmd
+                )
+
         ShowEvent event ->
             ( { model | modalEvent = Just event }, Cmd.none )
 
@@ -278,9 +269,7 @@ view model =
         , div [ class "columns is-hidden-touch" ]
             [ div [ class "column is-10 is-offset-1" ]
                 [ filterView
-                    model.selectedMajors
-                    model.currentMajor
-                    model.majors
+                    model.majorModel
                     model.organizationModel
                     model.searchFilter
                     model.features
@@ -316,9 +305,7 @@ headerView model =
                 [ class ("navbar-menu" ++ navbarState) ]
                 [ div [ class "navbar-start is-hidden-desktop" ]
                     [ filterView
-                        model.selectedMajors
-                        model.currentMajor
-                        model.majors
+                        model.majorModel
                         model.organizationModel
                         model.searchFilter
                         model.features

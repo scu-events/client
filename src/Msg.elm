@@ -3,7 +3,7 @@ module Msg exposing (..)
 import Http
 import Date exposing (Date, day, month, year, fromString)
 import Data.Event exposing (Event)
-import Data.Major exposing (Major)
+import Data.Major as Major
 import Data.Organization as Organization
 import Data.Feature exposing (Feature)
 
@@ -16,10 +16,7 @@ type SearchFilter
 
 
 type Msg
-    = AddMajor Major
-    | RemoveMajor Major
-    | UpdateCurrentMajor Major
-    | Initialize Date
+    = Initialize Date
     | PopulateCalendar (List String)
     | ChangeCalendar Int
     | NewEvents (Result Http.Error (List Event))
@@ -29,4 +26,5 @@ type Msg
     | ShowSearchFilter SearchFilter
     | ToggleFeature Feature
     | OrganizationMsg Organization.Msg
+    | MajorMsg Major.Msg
     | NoOp
