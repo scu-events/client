@@ -42,7 +42,7 @@ eventView event =
         [ header [ class "card-header" ]
             [ p [ class "card-header-title" ]
                 [ text
-                    ([ displayTime event.start_date_time, event.title ] |> String.join " ")
+                    ([ displayTime event.start_date_time, event.summary ] |> String.join " ")
                 ]
             ]
         , div [ class "card-content" ]

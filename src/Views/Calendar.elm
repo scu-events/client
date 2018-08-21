@@ -53,7 +53,8 @@ calendarView dates events modalEvent =
                                         )
                                     |> List.map
                                         (\z ->
-                                            a [ class "calendar-event\n\n                                            is-primary", onClick (ShowEvent z) ] [ text z.title ]
+                                            a [ class "calendar-event\n\n\n                                            is-primary", onClick (ShowEvent z) ]
+                                                [ text z.summary ]
                                         )
                         in
                             div [ class "calendar-date" ]
@@ -76,7 +77,7 @@ calendarView dates events modalEvent =
                         , div [ class "modal-card" ]
                             [ header [ class "modal-card-head" ]
                                 [ p [ class "modal-card-title" ]
-                                    [ text event.title ]
+                                    [ text event.summary ]
                                 , button
                                     [ class "delete", onClick HideEvent ]
                                     []
