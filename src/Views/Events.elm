@@ -11,8 +11,9 @@ import Utils.Time
         )
 import Data.Event exposing (Event)
 import Msg exposing (..)
-import Html exposing (Html, div, text, h3, header, p, footer, a)
+import Html exposing (Html, div, text, header, p, footer, a)
 import Html.Attributes exposing (class, href)
+import Set as Set
 
 
 eventsView : List Event -> Html Msg
@@ -20,10 +21,12 @@ eventsView events =
     div []
         (events
             |> List.map (.start_date_time >> displayDate)
+            |> Set.fromList
+            |> Set.toList
             |> List.map
                 (\date ->
                     (div []
-                        [ h3 [] [ text date ]
+                        [ p [ class "has-text-weight-bold" ] [ text date ]
                         , div []
                             (events
                                 |> List.filter

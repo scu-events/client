@@ -38,6 +38,11 @@ import Utils.Time exposing (toMonthString)
 ---- MODEL ----
 
 
+type DataProcess
+    = Loading
+    | Loaded
+
+
 type alias Model =
     { majorModel : Major.Model
     , events : List Event
@@ -55,6 +60,7 @@ type alias Model =
     , error : String
     , features : List Feature
     , selectedFeatures : List Feature
+    , eventsProcess : DataProcess
     }
 
 
@@ -123,6 +129,7 @@ init flags =
       , error = ""
       , features = [ "free food", "volunteer" ]
       , selectedFeatures = []
+      , eventsProcess = Loaded
       }
     , Task.perform Initialize Date.now
     )
@@ -151,6 +158,7 @@ update msg model =
             in
                 ( { model
                     | dates = dates
+                    , eventsProcess = Loading
                   }
                 , Http.send NewEvents
                     (Http.get
@@ -186,10 +194,10 @@ update msg model =
         NewEvents result ->
             case result of
                 Ok data ->
-                    ( { model | events = data }, Cmd.none )
+                    ( { model | events = data, eventsProcess = Loaded }, Cmd.none )
 
                 Err err ->
-                    ( { model | error = toString err }, Cmd.none )
+                    ( { model | error = toString err, eventsProcess = Loaded }, Cmd.none )
 
         ToggleFeature feature ->
             case List.member feature model.selectedFeatures of
@@ -264,23 +272,34 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ headerView model
-        , div [ class "columns is-hidden-touch" ]
-            [ div [ class "column is-10 is-offset-1" ]
-                [ filterView
-                    model.majorModel
-                    model.organizationModel
-                    model.searchFilter
-                    model.features
-                    model.selectedFeatures
+    let
+        pageLoader =
+            if model.eventsProcess == Loading then
+                div [ class "pageloader" ]
+                    [ span [ class "title" ]
+                        [ text "Loading" ]
+                    ]
+            else
+                div [] []
+    in
+        div []
+            [ headerView model
+            , pageLoader
+            , div [ class "columns is-hidden-touch" ]
+                [ div [ class "column is-10 is-offset-1" ]
+                    [ filterView
+                        model.majorModel
+                        model.organizationModel
+                        model.searchFilter
+                        model.features
+                        model.selectedFeatures
+                    ]
+                ]
+            , div [ class "columns" ]
+                [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
+                , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
                 ]
             ]
-        , div [ class "columns" ]
-            [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
-            , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
-            ]
-        ]
 
 
 headerView : Model -> Html Msg
@@ -310,15 +329,6 @@ headerView model =
                         model.searchFilter
                         model.features
                         model.selectedFeatures
-                    ]
-                , div [ class "navbar-end" ]
-                    [ span [ class "navbar-item" ]
-                        [ button [ class "button is-info is-inverted", disabled True ]
-                            [ span [ class "icon" ]
-                                [ i [ class "fa fa-user" ] [] ]
-                            , span [] [ text "Login" ]
-                            ]
-                        ]
                     ]
                 ]
             ]

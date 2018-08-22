@@ -24,7 +24,7 @@ import Html
         , section
         , footer
         )
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, attribute)
 import Html.Events exposing (onClick)
 import Data.Event exposing (Event)
 import Msg exposing (..)
@@ -42,7 +42,7 @@ calendarView dates events modalEvent =
                 |> List.map
                     (\x ->
                         let
-                            calendar_events =
+                            current_events =
                                 events
                                     |> List.filter
                                         (\y ->
@@ -51,20 +51,35 @@ calendarView dates events modalEvent =
                                                 && (y.start_date_time |> toDayString)
                                                 == (x |> toDayString)
                                         )
-                                    |> List.map
-                                        (\z ->
-                                            a [ class "calendar-event\n\n\n                                            is-primary", onClick (ShowEvent z) ]
-                                                [ text z.summary ]
-                                        )
+
+                            state =
+                                current_events |> List.isEmpty
                         in
-                            div [ class "calendar-date" ]
-                                [ button [ class "date-item" ]
-                                    [ text
-                                        (toDayString x)
+                            div
+                                [ class
+                                    ([ "calendar-date"
+                                     , if state then
+                                        ""
+                                       else
+                                        "tooltip"
+                                     ]
+                                        |> String.join " "
+                                    )
+                                , attribute "data-tooltip"
+                                    (current_events |> List.length |> toString)
+                                ]
+                                [ button
+                                    [ class
+                                        ([ "date-item"
+                                         , if state then
+                                            ""
+                                           else
+                                            "is-today"
+                                         ]
+                                            |> String.join " "
+                                        )
                                     ]
-                                , div
-                                    [ class "calendar-events" ]
-                                    calendar_events
+                                    [ text (toDayString x) ]
                                 ]
                     )
 
