@@ -42,7 +42,7 @@ filterView majorModel organizationModel searchFilter features selectedFeatures =
                     (\feature ->
                         case List.member feature selectedFeatures of
                             True ->
-                                div [ id "feature-tag", class "tag is-primary is-medium is-rounded", onClick (ToggleFeature feature) ]
+                                div [ id "feature-tag", class "tag is-info is-medium is-rounded", onClick (ToggleFeature feature) ]
                                     [ text feature ]
 
                             False ->
@@ -60,7 +60,7 @@ filterView majorModel organizationModel searchFilter features selectedFeatures =
             majorModel.selected
                 |> List.map
                     (\major ->
-                        div [ class "tag is-primary is-medium is-rounded" ]
+                        div [ class "tag is-info is-medium is-rounded" ]
                             [ text major
                             , button [ class "delete", onClick (MajorMsg (Major.Deselect major)) ]
                                 []
@@ -88,7 +88,7 @@ filterView majorModel organizationModel searchFilter features selectedFeatures =
             organizationModel.selected
                 |> List.map
                     (\organization ->
-                        div [ class "tag is-primary is-medium is-rounded" ]
+                        div [ class "tag is-info is-medium is-rounded" ]
                             [ text organization
                             , button
                                 [ class "delete"
@@ -147,7 +147,9 @@ filterView majorModel organizationModel searchFilter features selectedFeatures =
                                 )
                             ]
                             [ div [ class "dropdown-trigger" ]
-                                [ button [ class "button is-primary", onClick (ShowSearchFilter MajorFilter) ]
+                                [ button [ class "is-hidden-touch button is-info is-inverted is-outlined", onClick (ShowSearchFilter MajorFilter) ]
+                                    [ text "Majors", i [ class "fa fa-angle-down" ] [] ]
+                                , button [ class "is-hidden-desktop button is-info is-outlined", onClick (ShowSearchFilter MajorFilter) ]
                                     [ text "Majors", i [ class "fa fa-angle-down" ] [] ]
                                 ]
                             , div [ class "dropdown-menu" ]
@@ -184,7 +186,12 @@ filterView majorModel organizationModel searchFilter features selectedFeatures =
                             ]
                             [ div [ class "dropdown-trigger" ]
                                 [ button
-                                    [ class "button is-primary"
+                                    [ class "is-hidden-touch button is-info is-inverted is-outlined"
+                                    , onClick (ShowSearchFilter OrganizationFilter)
+                                    ]
+                                    [ text "Organizations", i [ class "fa fa-angle-down" ] [] ]
+                                , button
+                                    [ class "is-hidden-desktop button is-info is-outlined"
                                     , onClick (ShowSearchFilter OrganizationFilter)
                                     ]
                                     [ text "Organizations", i [ class "fa fa-angle-down" ] [] ]

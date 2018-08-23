@@ -285,19 +285,24 @@ view model =
         div []
             [ headerView model
             , pageLoader
-            , div [ class "columns is-hidden-touch" ]
-                [ div [ class "column is-10 is-offset-1" ]
-                    [ filterView
-                        model.majorModel
-                        model.organizationModel
-                        model.searchFilter
-                        model.features
-                        model.selectedFeatures
+            , div [ class " hero is-primary" ]
+                [ div [ class "columns is-hidden-touch" ]
+                    [ div [ class "column is-10 is-offset-1 hero-body" ]
+                        [ filterView
+                            model.majorModel
+                            model.organizationModel
+                            model.searchFilter
+                            model.features
+                            model.selectedFeatures
+                        ]
                     ]
                 ]
-            , div [ class "columns" ]
-                [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
-                , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+            , div [ class "hero is-light" ]
+                [ div
+                    [ class " columns hero-body" ]
+                    [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
+                    , div [ class "is-hidden-touch column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+                    ]
                 ]
             ]
 
@@ -311,7 +316,7 @@ headerView model =
             else
                 ""
     in
-        nav [ class "navbar is-transparent" ]
+        nav [ class "navbar is-transparent is-primary" ]
             [ div [ class "navbar-brand" ]
                 [ a [ href "#", class "navbar-item" ] [ text "SCU Events" ]
                 , div
