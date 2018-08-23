@@ -11,7 +11,7 @@ import Utils.Time
         )
 import Data.Event exposing (Event)
 import Msg exposing (..)
-import Html exposing (Html, div, text, header, p, footer, a)
+import Html exposing (Html, h2, div, text, header, p, footer, a)
 import Html.Attributes exposing (class, href)
 import Set as Set
 
@@ -19,23 +19,26 @@ import Set as Set
 eventsView : List Event -> Html Msg
 eventsView events =
     div []
-        (events
-            |> List.map (.start_date_time >> displayDate)
-            |> Set.fromList
-            |> Set.toList
-            |> List.map
-                (\date ->
-                    (div []
-                        [ p [ class "has-text-weight-bold" ] [ text date ]
-                        , div []
-                            (events
-                                |> List.filter
-                                    (\e -> displayDate e.start_date_time == date)
-                                |> List.map eventView
-                            )
-                        ]
+        (if List.isEmpty events then
+            [ h2 [] [ text "No Events this month" ] ]
+         else
+            events
+                |> List.map (.start_date_time >> displayDate)
+                |> Set.fromList
+                |> Set.toList
+                |> List.map
+                    (\date ->
+                        (div []
+                            [ p [ class "has-text-weight-bold" ] [ text date ]
+                            , div []
+                                (events
+                                    |> List.filter
+                                        (\e -> displayDate e.start_date_time == date)
+                                    |> List.map eventView
+                                )
+                            ]
+                        )
                     )
-                )
         )
 
 
