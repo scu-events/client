@@ -27,4 +27,5 @@ type Msg
     | ToggleFeature Feature
     | OrganizationMsg Organization.Msg
     | MajorMsg Major.Msg
+    | ToggleMainView
     | NoOp

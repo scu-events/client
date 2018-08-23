@@ -219,6 +219,16 @@ filterView majorModel organizationModel searchFilter features selectedFeatures =
                                     ]
                                 ]
                             ]
+                        , div [ class "is-pulled-right" ]
+                            [ button
+                                [ class "is-hidden-touch button is-rounded is-danger" ]
+                                [ text "Apply" ]
+                            , button
+                                [ class
+                                    "is-hidden-desktop button is-rounded is-danger"
+                                ]
+                                [ text "Apply" ]
+                            ]
                         ]
                     ]
                 ]

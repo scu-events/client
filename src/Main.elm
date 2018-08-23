@@ -43,6 +43,11 @@ type DataProcess
     | Loaded
 
 
+type MainView
+    = Calendar
+    | Events
+
+
 type alias Model =
     { majorModel : Major.Model
     , events : List Event
@@ -61,6 +66,7 @@ type alias Model =
     , features : List Feature
     , selectedFeatures : List Feature
     , eventsProcess : DataProcess
+    , mainView : MainView
     }
 
 
@@ -130,6 +136,7 @@ init flags =
       , features = [ "free food", "volunteer" ]
       , selectedFeatures = []
       , eventsProcess = Loaded
+      , mainView = Events
       }
     , Task.perform Initialize Date.now
     )
@@ -262,6 +269,14 @@ update msg model =
             , Cmd.none
             )
 
+        ToggleMainView ->
+            case model.mainView of
+                Calendar ->
+                    ( { model | mainView = Events }, Cmd.none )
+
+                Events ->
+                    ( { model | mainView = Calendar }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -275,17 +290,14 @@ view model =
     let
         pageLoader =
             if model.eventsProcess == Loading then
-                div [ class "pageloader" ]
-                    [ span [ class "title" ]
-                        [ text "Loading" ]
-                    ]
+                div [] []
             else
                 div [] []
     in
         div []
             [ headerView model
             , pageLoader
-            , div [ class " hero is-primary" ]
+            , div [ class "hero is-primary" ]
                 [ div [ class "columns is-hidden-touch" ]
                     [ div [ class "column is-10 is-offset-1 hero-body" ]
                         [ filterView
@@ -297,13 +309,25 @@ view model =
                         ]
                     ]
                 ]
-            , div [ class "hero is-light" ]
+            , div [ class "hero is-light is-hidden-touch" ]
                 [ div
-                    [ class " columns hero-body" ]
+                    [ class "columns hero-body" ]
                     [ div [ class "column is-offset-1 is-7" ] [ eventsView model.events ]
-                    , div [ class "is-hidden-touch column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
+                    , div [ class "column is-2" ] [ calendarView model.dates model.events model.modalEvent ]
                     ]
                 ]
+            , div [ class "hero is-light is-hidden-desktop" ]
+                [ div
+                    [ class "columns hero-body" ]
+                    [ div [ class "column" ]
+                        [ if model.mainView == Events then
+                            eventsView model.events
+                          else
+                            calendarView model.dates model.events model.modalEvent
+                        ]
+                    ]
+                ]
+            , footerView model
             ]
 
 
@@ -335,6 +359,35 @@ headerView model =
                         model.features
                         model.selectedFeatures
                     ]
+                ]
+            ]
+
+
+footerView : Model -> Html Msg
+footerView model =
+    let
+        btn_txt =
+            case model.mainView of
+                Events ->
+                    (model.dates
+                        |> List.drop 7
+                        |> List.head
+                        |> Maybe.withDefault Nothing
+                        |> toMonthString
+                    )
+                        ++ " (Calendar)"
+
+                Calendar ->
+                    "Show Events"
+    in
+        nav [ class "is-hidden-desktop navbar is-primary is-fixed-bottom" ]
+            [ div [ class "is-centered" ]
+                [ button [ class "button is-primary is-pulled-left", onClick (ChangeCalendar -1) ]
+                    [ i [ class "fa fa-chevron-left" ] [] ]
+                , button [ class "button is-primary", onClick ToggleMainView ]
+                    [ text btn_txt ]
+                , button [ class "button is-primary is-pulled-right", onClick (ChangeCalendar 1) ]
+                    [ i [ class "fa fa-chevron-right" ] [] ]
                 ]
             ]
 
