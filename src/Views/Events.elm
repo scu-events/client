@@ -48,12 +48,18 @@ eventView event =
         [ header [ class "card-header" ]
             [ p [ class "card-header-title" ]
                 [ text
-                    ([ displayTime event.start_date_time, event.summary ] |> String.join " ")
+                    ([ displayTime event.start_date_time
+                     , event.summary
+                     , " @ "
+                     , Maybe.withDefault "No location provided" event.location
+                     ]
+                        |> String.join " "
+                    )
                 ]
             ]
         , div [ class "card-content" ]
             [ div [ class "content" ]
-                [ text event.summary ]
+                [ text (Maybe.withDefault event.summary event.description) ]
             ]
         , footer [ class "card-footer" ]
             [ a [ href event.html_link, class "card-footer-item" ]

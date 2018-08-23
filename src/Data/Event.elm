@@ -1,7 +1,7 @@
 module Data.Event exposing (Event, eventsDecoder)
 
 import Date exposing (Date, fromString)
-import Json.Decode as Json
+import Json.Decode as Decode
 
 
 type alias Event =
@@ -9,31 +9,35 @@ type alias Event =
     , end_date_time : Maybe Date
     , summary : String
     , html_link : String
+    , location : Maybe String
+    , description : Maybe String
     }
 
 
-dateDecoder : Json.Decoder (Maybe Date)
+dateDecoder : Decode.Decoder (Maybe Date)
 dateDecoder =
     let
-        convert : String -> Json.Decoder Date
+        convert : String -> Decode.Decoder Date
         convert raw =
             case fromString raw of
                 Ok date ->
-                    Json.succeed date
+                    Decode.succeed date
 
                 Err error ->
-                    Json.fail error
+                    Decode.fail error
     in
-        Json.field "dateTime" Json.string |> Json.andThen convert |> Json.maybe
+        Decode.field "dateTime" Decode.string |> Decode.andThen convert |> Decode.maybe
 
 
-eventsDecoder : Json.Decoder (List Event)
+eventsDecoder : Decode.Decoder (List Event)
 eventsDecoder =
-    Json.at [ "data" ]
-        (Json.map4 Event
-            (Json.at [ "start" ] dateDecoder)
-            (Json.at [ "end" ] dateDecoder)
-            (Json.at [ "summary" ] Json.string)
-            (Json.at [ "htmlLink" ] Json.string)
-            |> Json.list
+    Decode.at [ "data" ]
+        (Decode.map6 Event
+            (Decode.at [ "start" ] dateDecoder)
+            (Decode.at [ "end" ] dateDecoder)
+            (Decode.at [ "summary" ] Decode.string)
+            (Decode.at [ "htmlLink" ] Decode.string)
+            (Decode.at [ "location" ] Decode.string |> Decode.maybe)
+            (Decode.at [ "description" ] Decode.string |> Decode.maybe)
+            |> Decode.list
         )
