@@ -1,7 +1,7 @@
 module Msg exposing (..)
 
 import Http
-import Date exposing (Date, day, month, year, fromString)
+import Time exposing (Posix)
 import Data.Event exposing (Event)
 import Data.Major as Major
 import Data.Organization as Organization
@@ -16,7 +16,7 @@ type SearchFilter
 
 
 type Msg
-    = Initialize Date
+    = Initialize Posix
     | PopulateCalendar (List String)
     | ChangeCalendar Int
     | NewEvents (Result Http.Error (List Event))

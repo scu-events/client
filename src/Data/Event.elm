@@ -1,12 +1,13 @@
 module Data.Event exposing (Event, eventsDecoder)
 
-import Date exposing (Date, fromString)
+import Time exposing (Posix)
 import Json.Decode as Decode
+import Iso8601 exposing (toTime)
 
 
 type alias Event =
-    { start_date_time : Maybe Date
-    , end_date_time : Maybe Date
+    { start_date_time : Maybe Posix
+    , end_date_time : Maybe Posix
     , summary : String
     , html_link : String
     , location : Maybe String
@@ -14,17 +15,17 @@ type alias Event =
     }
 
 
-dateDecoder : Decode.Decoder (Maybe Date)
+dateDecoder : Decode.Decoder (Maybe Posix)
 dateDecoder =
     let
-        convert : String -> Decode.Decoder Date
+        convert : String -> Decode.Decoder Posix
         convert raw =
-            case fromString raw of
+            case toTime raw of
                 Ok date ->
                     Decode.succeed date
 
-                Err error ->
-                    Decode.fail error
+                Err _ ->
+                    Decode.fail "failed"
     in
         Decode.field "dateTime" Decode.string |> Decode.andThen convert |> Decode.maybe
 

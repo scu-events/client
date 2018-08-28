@@ -1,16 +1,7 @@
 module Views.Calendar exposing (calendarView)
 
-import Date exposing (Date)
-import Utils.Time
-    exposing
-        ( timeToString
-        , toCalendarStyle
-        , toMonthString
-        , displayDate
-        , displayTime
-        , formatTime
-        , toDayString
-        )
+import Time exposing (Posix)
+import Utils.Time exposing (toMonthString, toDayString)
 import Html
     exposing
         ( Html
@@ -30,7 +21,7 @@ import Data.Event exposing (Event)
 import Msg exposing (..)
 
 
-calendarView : List (Maybe Date) -> List Event -> Maybe Event -> Html Msg
+calendarView : List (Maybe Posix) -> List Event -> Maybe Event -> Html Msg
 calendarView dates events modalEvent =
     let
         calendarHeader =
@@ -66,7 +57,7 @@ calendarView dates events modalEvent =
                                         |> String.join " "
                                     )
                                 , attribute "data-tooltip"
-                                    (current_events |> List.length |> toString)
+                                    (current_events |> List.length |> String.fromInt)
                                 ]
                                 [ button
                                     [ class

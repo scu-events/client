@@ -1,8 +1,8 @@
 module Main exposing (..)
 
-import Date exposing (Date, day, month, year, fromString)
 import Task
 import Ports
+import Browser
 import Html
     exposing
         ( Html
@@ -24,6 +24,8 @@ import Html.Attributes
         )
 import Html.Events exposing (onClick)
 import Http
+import Time exposing (Posix, utc, now, toDay, toMonth, toYear)
+import Iso8601 exposing (toTime)
 import Data.Event exposing (Event, eventsDecoder)
 import Data.Major as Major
 import Data.Organization as Organization
@@ -32,7 +34,7 @@ import Views.Calendar exposing (calendarView)
 import Views.Events exposing (eventsView)
 import Views.Filter exposing (filterView)
 import Msg exposing (..)
-import Utils.Time exposing (toMonthString)
+import Utils.Time exposing (toMonthString, toFirstThreeCharMonth)
 
 
 ---- MODEL ----
@@ -51,8 +53,8 @@ type MainView
 type alias Model =
     { majorModel : Major.Model
     , events : List Event
-    , dates : List (Maybe Date) -- annoying Maybe
-    , now : Maybe Date
+    , dates : List (Maybe Posix) -- annoying Maybe
+    , now : Maybe Posix
     , offset : Int
     , organizationModel : Organization.Model
     , backendURL : String
@@ -71,11 +73,11 @@ type alias Model =
 
 
 type alias Flags =
-    { backendURL : String }
+    String
 
 
 init : Flags -> ( Model, Cmd Msg )
-init flags =
+init backendURL =
     ( { majorModel =
             { selected = []
             , searching = ""
@@ -125,7 +127,7 @@ init flags =
                 , "Society of Women Engineers"
                 ]
             }
-      , backendURL = flags.backendURL
+      , backendURL = backendURL
       , modalEvent = Nothing
       , navbarToggle = True
       , featureToggle = False
@@ -138,7 +140,7 @@ init flags =
       , eventsProcess = Loaded
       , mainView = Events
       }
-    , Task.perform Initialize Date.now
+    , Task.perform Initialize now
     )
 
 
@@ -152,7 +154,11 @@ update msg model =
         Initialize date ->
             ( { model | now = Just date }
             , Ports.populateCalendar
-                ([ year >> toString, month >> toString, day >> toString ]
+                ([ (toYear utc) >> String.fromInt
+                 , (toMonth utc)
+                    >> toFirstThreeCharMonth
+                 , (toDay utc) >> String.fromInt
+                 ]
                     |> List.map ((|>) date)
                     |> String.join " "
                 )
@@ -161,7 +167,7 @@ update msg model =
         PopulateCalendar res ->
             let
                 dates =
-                    res |> List.map ((<|) (fromString >> Result.toMaybe))
+                    res |> List.map ((<|) (toTime >> Result.toMaybe))
             in
                 ( { model
                     | dates = dates
@@ -189,7 +195,11 @@ update msg model =
         ChangeCalendar n ->
             ( { model | offset = model.offset + n }
             , Ports.repopulateCalendar
-                ( ([ year >> toString, month >> toString, day >> toString ]
+                ( ([ (toYear utc) >> String.fromInt
+                   , (toMonth utc)
+                        >> toFirstThreeCharMonth
+                   , (toDay utc) >> String.fromInt
+                   ]
                     |> List.map
                         (\x -> model.now |> Maybe.map x |> Maybe.withDefault "")
                     |> String.join " "
@@ -203,8 +213,8 @@ update msg model =
                 Ok data ->
                     ( { model | events = data, eventsProcess = Loaded }, Cmd.none )
 
-                Err err ->
-                    ( { model | error = toString err, eventsProcess = Loaded }, Cmd.none )
+                Err _ ->
+                    ( { model | error = "something went wrong", eventsProcess = Loaded }, Cmd.none )
 
         ToggleFeature feature ->
             case List.member feature model.selectedFeatures of
@@ -405,9 +415,8 @@ subscriptions model =
 ---- PROGRAM ----
 
 
-main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    Browser.element
         { view = view
         , init = init
         , update = update

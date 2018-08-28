@@ -7,43 +7,84 @@ module Utils.Time
         , displayTime
         , formatTime
         , toDayString
+        , toFirstThreeCharMonth
         )
 
-import Date exposing (Date, day, year, month, hour, minute)
+import Time exposing (Posix, Month(..), toDay, toYear, toMonth, toHour, toMinute, utc)
 
 
-timeToString : Maybe Date -> (Date -> Int) -> String
+timeToString : Maybe Posix -> (Posix -> Int) -> String
 timeToString time func =
-    time |> (Maybe.map func >> Maybe.withDefault 0 >> toString)
+    time |> (Maybe.map func >> Maybe.withDefault 0 >> String.fromInt)
 
 
-toCalendarStyle : Date -> String
+toCalendarStyle : Posix -> String
 toCalendarStyle date =
-    [ month >> toString, year >> toString ]
+    [ (toMonth utc) >> toFirstThreeCharMonth, (toYear utc) >> String.fromInt ]
         |> List.map ((|>) date)
         |> String.join " "
 
 
-toMonthString : Maybe Date -> String
+toMonthString : Maybe Posix -> String
 toMonthString =
     Maybe.map toCalendarStyle >> Maybe.withDefault "Failed"
 
 
-displayDate : Maybe Date -> String
+toFirstThreeCharMonth : Month -> String
+toFirstThreeCharMonth month =
+    case month of
+        Jan ->
+            "Jan"
+
+        Feb ->
+            "Feb"
+
+        Mar ->
+            "Mar"
+
+        Apr ->
+            "Apr"
+
+        May ->
+            "May"
+
+        Jun ->
+            "Jun"
+
+        Jul ->
+            "Jul"
+
+        Aug ->
+            "Aug"
+
+        Sep ->
+            "Sep"
+
+        Oct ->
+            "Oct"
+
+        Nov ->
+            "Nov"
+
+        Dec ->
+            "Dec"
+
+
+displayDate : Maybe Posix -> String
 displayDate time =
-    [ toMonthString time, timeToString time day ] |> String.join "  "
+    [ toMonthString time, timeToString time (toDay utc) ] |> String.join "  "
 
 
-formatTime : Maybe Date -> (Date -> Int) -> String
+formatTime : Maybe Posix -> (Posix -> Int) -> String
 formatTime time func =
     timeToString time func |> String.padLeft 2 '0'
 
 
-displayTime : Maybe Date -> String
+displayTime : Maybe Posix -> String
 displayTime date =
-    [ (formatTime date hour), (formatTime date minute) ] |> String.join ":"
+    [ (formatTime date (toHour utc)), (formatTime date (toMinute utc)) ] |> String.join ":"
 
 
-toDayString : Maybe Date -> String
+toDayString : Maybe Posix -> String
 toDayString time =
-    timeToString time day
+    timeToString time (toDay utc)
