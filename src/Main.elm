@@ -34,7 +34,12 @@ import Views.Calendar exposing (calendarView)
 import Views.Events exposing (eventsView)
 import Views.Filter exposing (filterView)
 import Msg exposing (..)
-import Utils.Time exposing (toMonthString, toFirstThreeCharMonth)
+import Utils.Time
+    exposing
+        ( toMonthString
+        , toFirstThreeCharMonth
+        , generateArrayOfTheMonth
+        )
 
 
 ---- MODEL ----
@@ -53,7 +58,7 @@ type MainView
 type alias Model =
     { majorModel : Major.Model
     , events : List Event
-    , dates : List (Maybe Posix) -- annoying Maybe
+    , dates : List Maybe Posix
     , now : Maybe Posix
     , offset : Int
     , organizationModel : Organization.Model
@@ -152,60 +157,33 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Initialize date ->
-            ( { model | now = Just date }
-            , Ports.populateCalendar
-                ([ (toYear utc) >> String.fromInt
-                 , (toMonth utc)
-                    >> toFirstThreeCharMonth
-                 , (toDay utc) >> String.fromInt
-                 ]
-                    |> List.map ((|>) date)
-                    |> String.join " "
+            ( { model | now = Just date, dates = generateArrayOfTheMonth Just date 0, eventsProcess = Loading }
+            , Http.send NewEvents
+                (Http.get
+                    ([ model.backendURL ++ "/api/events?month="
+                     , (model.dates
+                            |> List.drop 7
+                            |> List.head
+                            |> Maybe.withDefault model.now
+                            |> toMonthString
+                            |> String.toLower
+                            |> String.split " "
+                            |> String.join "&year="
+                       )
+                     ]
+                        |> String.join ""
+                    )
+                    eventsDecoder
                 )
             )
 
-        PopulateCalendar res ->
-            let
-                dates =
-                    res |> List.map ((<|) (toTime >> Result.toMaybe))
-            in
-                ( { model
-                    | dates = dates
-                    , eventsProcess = Loading
-                  }
-                , Http.send NewEvents
-                    (Http.get
-                        ([ model.backendURL ++ "/api/events?month="
-                         , (dates
-                                |> List.drop 7
-                                |> List.head
-                                |> Maybe.withDefault model.now
-                                |> toMonthString
-                                |> String.toLower
-                                |> String.split " "
-                                |> String.join "&year="
-                           )
-                         ]
-                            |> String.join ""
-                        )
-                        eventsDecoder
-                    )
-                )
-
         ChangeCalendar n ->
-            ( { model | offset = model.offset + n }
-            , Ports.repopulateCalendar
-                ( ([ (toYear utc) >> String.fromInt
-                   , (toMonth utc)
-                        >> toFirstThreeCharMonth
-                   , (toDay utc) >> String.fromInt
-                   ]
-                    |> List.map
-                        (\x -> model.now |> Maybe.map x |> Maybe.withDefault "")
-                    |> String.join " "
-                  )
-                , model.offset + n
-                )
+            ( { model
+                | offset = model.offset + n
+                , dates =
+                    generateArrayOfTheMonth model.now (model.offset + n)
+              }
+            , Cmd.none
             )
 
         NewEvents result ->
