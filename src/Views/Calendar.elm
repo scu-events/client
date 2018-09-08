@@ -21,7 +21,7 @@ import Data.Event exposing (Event)
 import Msg exposing (..)
 
 
-calendarView : List Posix -> List Event -> Maybe Event -> Html Msg
+calendarView : List (Maybe Posix) -> List Event -> Maybe Event -> Html Msg
 calendarView dates events modalEvent =
     let
         calendarHeader =
@@ -111,6 +111,7 @@ calendarView dates events modalEvent =
                         (dates
                             |> List.drop 7
                             |> List.head
+                            |> Maybe.withDefault Nothing
                             |> toMonthString
                         )
                     ]

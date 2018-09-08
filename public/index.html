@@ -13,7 +13,7 @@
     <link rel="javascript" href="https://cdn.jsdelivr.net/npm/bulma-calendar@1.1.2/dist/bulma-calendar.min.js">
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
     <script src="elm.js"></script>
-    <script src="../src/index.js"></script>
+    <!-- <script src="../src/index.js"></script> -->
     <title>SCU Events</title>
 </head>
 <body>
@@ -21,5 +21,13 @@
     You need to enable JavaScript to run this app.
   </noscript>
   <div id="root"></div>
+
+
+  <script>
+    var app = Elm.Main.init({
+      node: document.getElementById("root"),
+      flags: "http://localhost:4000",
+    });
+  </script>
 </body>
 </html>

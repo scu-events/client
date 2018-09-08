@@ -17,7 +17,6 @@ type SearchFilter
 
 type Msg
     = Initialize Posix
-    | PopulateCalendar (List String)
     | ChangeCalendar Int
     | NewEvents (Result Http.Error (List Event))
     | ShowEvent Event

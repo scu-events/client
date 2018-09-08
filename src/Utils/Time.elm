@@ -23,6 +23,8 @@ import Time
         , toHour
         , toMinute
         , utc
+        , posixToMillis
+        , millisToPosix
         )
 
 
@@ -270,7 +272,10 @@ generateArrayOfTheMonth mposix diff =
                             0
 
                 baseDate =
-                    modBy 7 (weekdayToInt (toWeekday utc posix) - (modBy 7 (toDay utc posix)) + 1)
+                    posixToMillis posix
+
+                firstDayOfTheMonth =
+                    baseDate - (toDay utc posix) * dayInMillis
 
                 diffDays =
                     if diff < 0 then
@@ -303,13 +308,36 @@ generateArrayOfTheMonth mposix diff =
                                 )
 
                 weekdayOfTheFirstDayOfTheMonth =
-                    modBy 7 (baseDate + List.sum diffDays)
+                    weekdayToInt
+                        (toWeekday utc
+                            (millisToPosix
+                                (firstDayOfTheMonth
+                                    + (List.sum
+                                        diffDays
+                                      )
+                                    * dayInMillis
+                                )
+                            )
+                        )
 
                 lengthOfThisMonth =
                     numberOfDaysInTheMonth thisMonthInt thisYear
 
+                -- in milliseconds
+                daysFromThisMonth : List Int
                 daysFromThisMonth =
                     List.range 1 lengthOfThisMonth
+                        |> List.map
+                            (\d ->
+                                let
+                                    today =
+                                        toDay utc (millisToPosix firstDayOfTheMonth)
+                                in
+                                    if d <= today then
+                                        firstDayOfTheMonth - (today - d) * dayInMillis
+                                    else
+                                        firstDayOfTheMonth + (d - today) * dayInMillis
+                            )
 
                 lastMonthLength =
                     numberOfDaysInTheMonth (modBy 12 (thisMonthInt - 1))
@@ -332,15 +360,34 @@ generateArrayOfTheMonth mposix diff =
                     else
                         35
 
+                -- list of milliseconds
+                daysFromLastMonth : List Int
                 daysFromLastMonth =
-                    List.repeat weekdayOfTheFirstDayOfTheMonth 0
+                    List.range 1 (weekdayOfTheFirstDayOfTheMonth + 1)
+                        |> List.map (\d -> firstDayOfTheMonth - d * dayInMillis)
+                        |> List.reverse
 
+                -- list of milliseconds
+                daysFromNextMonth : List Int
                 daysFromNextMonth =
-                    List.repeat (totalLength - List.length daysFromLastMonth - lengthOfThisMonth) 0
+                    List.range 1 (totalLength - List.length daysFromLastMonth - lengthOfThisMonth)
+                        |> List.map (\d -> firstDayOfTheMonth + d * dayInMillis)
 
                 -- List.range 1 (length - lengthOfDaysFromLastMonth - lengthOfThisMonth)
             in
-                List.concat [ daysFromLastMonth, daysFromThisMonth, daysFromNextMonth ]
+                (List.concat [ daysFromLastMonth, daysFromThisMonth, daysFromNextMonth ]
+                    |> List.map (\d -> Just (millisToPosix d))
+                )
 
         Nothing ->
             []
+
+
+daysInMillis : Int -> Int
+daysInMillis days =
+    days * dayInMillis
+
+
+dayInMillis : Int
+dayInMillis =
+    86400000

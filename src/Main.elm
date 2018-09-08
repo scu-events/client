@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Task
-import Ports
 import Browser
 import Html
     exposing
@@ -58,7 +57,7 @@ type MainView
 type alias Model =
     { majorModel : Major.Model
     , events : List Event
-    , dates : List Maybe Posix
+    , dates : List (Maybe Posix)
     , now : Maybe Posix
     , offset : Int
     , organizationModel : Organization.Model
@@ -157,7 +156,16 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Initialize date ->
-            ( { model | now = Just date, dates = generateArrayOfTheMonth Just date 0, eventsProcess = Loading }
+            ( { model
+                | now = Just date
+                , dates =
+                    generateArrayOfTheMonth
+                        (Just
+                            date
+                        )
+                        0
+                , eventsProcess = Loading
+              }
             , Http.send NewEvents
                 (Http.get
                     ([ model.backendURL ++ "/api/events?month="
@@ -385,11 +393,13 @@ footerView model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Ports.onPopulateCalendar PopulateCalendar
+subscriptions _ =
+    Sub.none
 
 
 
+-- subscriptions model =
+-- Ports.onPopulateCalendar PopulateCalendar
 ---- PROGRAM ----
 
 
