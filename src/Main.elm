@@ -284,6 +284,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
+        pageLoader : Html Msg
         pageLoader =
             if model.eventsProcess == Loading then
                 div [] []
@@ -330,6 +331,7 @@ view model =
 headerView : Model -> Html Msg
 headerView model =
     let
+        navbarState : String
         navbarState =
             if not model.navbarToggle then
                 " is-active"

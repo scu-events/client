@@ -256,9 +256,11 @@ generateArrayOfTheMonth mposix diff =
     case mposix of
         Just posix ->
             let
+                thisMonthIntBeforeMod : Int
                 thisMonthIntBeforeMod =
                     monthToInt (toMonth utc posix) + diff
 
+                thisMonthInt : Int
                 thisMonthInt =
                     modBy 12 thisMonthIntBeforeMod
 
@@ -271,12 +273,15 @@ generateArrayOfTheMonth mposix diff =
                           else
                             0
 
+                baseDate : Int
                 baseDate =
                     posixToMillis posix
 
+                firstDayOfTheMonth : Int
                 firstDayOfTheMonth =
                     baseDate - (toDay utc posix) * dayInMillis
 
+                diffDays : List Int
                 diffDays =
                     if diff < 0 then
                         List.range diff -1
@@ -307,6 +312,7 @@ generateArrayOfTheMonth mposix diff =
                                         )
                                 )
 
+                weekdayOfTheFirstDayOfTheMonth : Int
                 weekdayOfTheFirstDayOfTheMonth =
                     weekdayToInt
                         (toWeekday utc
@@ -320,6 +326,7 @@ generateArrayOfTheMonth mposix diff =
                             )
                         )
 
+                lengthOfThisMonth : Int
                 lengthOfThisMonth =
                     numberOfDaysInTheMonth thisMonthInt thisYear
 
@@ -339,6 +346,7 @@ generateArrayOfTheMonth mposix diff =
                                         firstDayOfTheMonth + (d - today) * dayInMillis
                             )
 
+                lastMonthLength : Int
                 lastMonthLength =
                     numberOfDaysInTheMonth (modBy 12 (thisMonthInt - 1))
                         (if thisMonthInt == 0 then
@@ -347,6 +355,7 @@ generateArrayOfTheMonth mposix diff =
                             thisYear
                         )
 
+                totalLength : Int
                 totalLength =
                     if
                         (weekdayOfTheFirstDayOfTheMonth == 6 && lengthOfThisMonth > 29)
