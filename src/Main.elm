@@ -399,13 +399,15 @@ footerView model =
                 Calendar ->
                     "Show Events"
     in
-        nav [ class "is-hidden-desktop navbar is-primary is-fixed-bottom" ]
-            [ div [ class "is-centered" ]
-                [ button [ class "button is-primary is-pulled-left", onClick (ChangeCalendar -1) ]
+        nav [ class "is-hidden-desktop is-mobile navbar level is-primary is-fixed-bottom" ]
+            [ div [ class "level-left" ]
+                [ button [ class "level-item button is-primary", onClick (ChangeCalendar -1) ]
                     [ i [ class "fa fa-chevron-left" ] [] ]
-                , button [ class "button is-primary", onClick ToggleMainView ]
-                    [ text btn_txt ]
-                , button [ class "button is-primary is-pulled-right", onClick (ChangeCalendar 1) ]
+                ]
+            , button [ class "level-item button is-primary", onClick ToggleMainView ]
+                [ text btn_txt ]
+            , div [ class "level-right" ]
+                [ button [ class "level-item button is-primary", onClick (ChangeCalendar 1) ]
                     [ i [ class "fa fa-chevron-right" ] [] ]
                 ]
             ]
