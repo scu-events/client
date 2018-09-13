@@ -30,7 +30,12 @@ import Time
 
 timeToString : Maybe Posix -> (Posix -> Int) -> String
 timeToString time func =
-    time |> (Maybe.map func >> Maybe.withDefault 0 >> String.fromInt)
+    case time |> (Maybe.map func >> Maybe.withDefault 0 >> String.fromInt) of
+        "0" ->
+            " "
+
+        x ->
+            x
 
 
 toCalendarStyle : Posix -> String
@@ -47,7 +52,7 @@ toMonthString =
 
 numberOfDaysInTheMonth : Int -> Int -> Int
 numberOfDaysInTheMonth month year =
-    case monthIntToLength (month) of
+    case monthIntToLength month of
         28 ->
             if leapYear year then
                 29
@@ -247,10 +252,6 @@ toDayString time =
     timeToString time (toDay utc)
 
 
-
--- use posix milliseconds : a day == 86400000 milliseconds
-
-
 generateArrayOfTheMonth : Maybe Posix -> Int -> List (Maybe Posix)
 generateArrayOfTheMonth mposix diff =
     case mposix of
@@ -258,135 +259,93 @@ generateArrayOfTheMonth mposix diff =
             let
                 thisMonthIntBeforeMod : Int
                 thisMonthIntBeforeMod =
-                    monthToInt (toMonth utc posix) + diff
+                    monthToInt (toMonth utc posix)
 
-                thisMonthInt : Int
-                thisMonthInt =
-                    modBy 12 thisMonthIntBeforeMod
+                yearWithOffset : Int -> Int
+                yearWithOffset d =
+                    let
+                        month =
+                            thisMonthIntBeforeMod + d
+                    in
+                        toYear utc posix
+                            + month
+                            // 12
+                            + if month < 0 then
+                                -1
+                              else
+                                0
 
-                thisYear =
-                    toYear utc posix
-                        + thisMonthIntBeforeMod
-                        // 12
-                        + if thisMonthIntBeforeMod < 0 then
-                            -1
-                          else
-                            0
+                numOfDaysInTheMonthWithOffset : Int -> Int
+                numOfDaysInTheMonthWithOffset d =
+                    numberOfDaysInTheMonth (modBy 12 (thisMonthIntBeforeMod + d))
+                        (yearWithOffset d)
 
-                baseDate : Int
-                baseDate =
-                    posixToMillis posix
-
-                firstDayOfTheMonth : Int
-                firstDayOfTheMonth =
-                    baseDate - (toDay utc posix) * dayInMillis
+                days : Int -> Int -> List Int
+                days start end =
+                    List.range start end
+                        |> List.map numOfDaysInTheMonthWithOffset
 
                 diffDays : List Int
                 diffDays =
-                    if diff < 0 then
-                        List.range diff -1
-                            |> List.map
-                                (\m ->
-                                    numberOfDaysInTheMonth (modBy 12 (thisMonthInt + m))
-                                        (toYear utc posix
-                                            + thisMonthIntBeforeMod
-                                            // 12
-                                            + if thisMonthIntBeforeMod < 0 then
-                                                -1
-                                              else
-                                                0
-                                        )
-                                )
+                    if diff /= 0 then
+                        if diff < 0 then
+                            days diff -1 |> List.map ((*) -1)
+                        else
+                            days 0 (diff - 1)
                     else
-                        List.range 0 diff
-                            |> List.map
-                                (\m ->
-                                    numberOfDaysInTheMonth (modBy 12 (thisMonthInt + m))
-                                        (toYear utc posix
-                                            + thisMonthIntBeforeMod
-                                            // 12
-                                            + if thisMonthIntBeforeMod < 0 then
-                                                -1
-                                              else
-                                                0
-                                        )
-                                )
+                        []
 
-                weekdayOfTheFirstDayOfTheMonth : Int
-                weekdayOfTheFirstDayOfTheMonth =
+                firstDayOfTheMonth : Int
+                firstDayOfTheMonth =
+                    posixToMillis posix + daysInMillis (List.sum diffDays - (toDay utc posix - 1))
+
+                weekdayOfTheFirstDay : Int
+                weekdayOfTheFirstDay =
                     weekdayToInt
-                        (toWeekday utc
-                            (millisToPosix
-                                (firstDayOfTheMonth
-                                    + (List.sum
-                                        diffDays
-                                      )
-                                    * dayInMillis
-                                )
-                            )
-                        )
+                        (toWeekday utc (millisToPosix firstDayOfTheMonth))
 
                 lengthOfThisMonth : Int
                 lengthOfThisMonth =
-                    numberOfDaysInTheMonth thisMonthInt thisYear
-
-                -- in milliseconds
-                daysFromThisMonth : List Int
-                daysFromThisMonth =
-                    List.range 1 lengthOfThisMonth
-                        |> List.map
-                            (\d ->
-                                let
-                                    today =
-                                        toDay utc (millisToPosix firstDayOfTheMonth)
-                                in
-                                    if d <= today then
-                                        firstDayOfTheMonth - (today - d) * dayInMillis
-                                    else
-                                        firstDayOfTheMonth + (d - today) * dayInMillis
-                            )
-
-                lastMonthLength : Int
-                lastMonthLength =
-                    numberOfDaysInTheMonth (modBy 12 (thisMonthInt - 1))
-                        (if thisMonthInt == 0 then
-                            thisYear - 1
-                         else
-                            thisYear
-                        )
+                    numOfDaysInTheMonthWithOffset 0
 
                 totalLength : Int
                 totalLength =
-                    if
-                        (weekdayOfTheFirstDayOfTheMonth == 6 && lengthOfThisMonth > 29)
-                            || (weekdayOfTheFirstDayOfTheMonth
-                                    == 5
-                                    && lengthOfThisMonth
-                                    > 30
-                               )
-                    then
-                        42
-                    else
-                        35
+                    case weekdayOfTheFirstDay of
+                        6 ->
+                            if lengthOfThisMonth >= 30 then
+                                42
+                            else
+                                35
 
-                -- list of milliseconds
-                daysFromLastMonth : List Int
+                        5 ->
+                            if lengthOfThisMonth >= 31 then
+                                42
+                            else
+                                35
+
+                        _ ->
+                            35
+
+                daysFromThisMonth : List (Maybe Posix)
+                daysFromThisMonth =
+                    List.range 0 (lengthOfThisMonth - 1)
+                        |> List.map daysInMillis
+                        |> List.map (\d -> Just (millisToPosix (firstDayOfTheMonth + d)))
+
+                daysFromLastMonth : List (Maybe Posix)
                 daysFromLastMonth =
-                    List.range 1 (weekdayOfTheFirstDayOfTheMonth + 1)
-                        |> List.map (\d -> firstDayOfTheMonth - d * dayInMillis)
-                        |> List.reverse
+                    List.repeat weekdayOfTheFirstDay Nothing
 
-                -- list of milliseconds
-                daysFromNextMonth : List Int
+                daysFromNextMonth : List (Maybe Posix)
                 daysFromNextMonth =
-                    List.range 1 (totalLength - List.length daysFromLastMonth - lengthOfThisMonth)
-                        |> List.map (\d -> firstDayOfTheMonth + d * dayInMillis)
-
-                -- List.range 1 (length - lengthOfDaysFromLastMonth - lengthOfThisMonth)
+                    List.repeat
+                        (totalLength
+                            - List.length daysFromLastMonth
+                            - List.length daysFromThisMonth
+                        )
+                        Nothing
             in
-                (List.concat [ daysFromLastMonth, daysFromThisMonth, daysFromNextMonth ]
-                    |> List.map (\d -> Just (millisToPosix d))
-                )
+                List.concat [ daysFromLastMonth, daysFromThisMonth, daysFromNextMonth ]
 
         Nothing ->
             []
@@ -394,9 +353,4 @@ generateArrayOfTheMonth mposix diff =
 
 daysInMillis : Int -> Int
 daysInMillis days =
-    days * dayInMillis
-
-
-dayInMillis : Int
-dayInMillis =
-    86400000
+    days * 86400000

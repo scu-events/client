@@ -73,32 +73,6 @@ calendarView dates events modalEvent =
                                     [ text (toDayString x) ]
                                 ]
                     )
-
-        modal =
-            case modalEvent of
-                Just event ->
-                    div [ class "modal is-active" ]
-                        [ div [ class "modal-background" ]
-                            []
-                        , div [ class "modal-card" ]
-                            [ header [ class "modal-card-head" ]
-                                [ p [ class "modal-card-title" ]
-                                    [ text event.summary ]
-                                , button
-                                    [ class "delete", onClick HideEvent ]
-                                    []
-                                ]
-                            , section [ class "modal-card-body" ]
-                                [ text event.summary ]
-                            , footer [ class "modal-card-foot" ]
-                                [ button [ class "button is-success" ]
-                                    [ text "Add to your calendar" ]
-                                ]
-                            ]
-                        ]
-
-                Nothing ->
-                    div [] []
     in
         div [ class "calendar" ]
             [ div [ class "calendar-nav" ]
@@ -124,5 +98,4 @@ calendarView dates events modalEvent =
                 [ div [ class "calendar-header" ] calendarHeader
                 , div [ class "calendar-body" ] calendarBody
                 ]
-            , modal
             ]

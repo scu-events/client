@@ -160,9 +160,7 @@ update msg model =
                 | now = Just date
                 , dates =
                     generateArrayOfTheMonth
-                        (Just
-                            date
-                        )
+                        (Just date)
                         0
                 , eventsProcess = Loading
               }
