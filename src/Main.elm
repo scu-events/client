@@ -156,41 +156,64 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Initialize date ->
-            ( { model
-                | now = Just date
-                , dates =
-                    generateArrayOfTheMonth
-                        (Just date)
-                        0
-                , eventsProcess = Loading
-              }
-            , Http.send NewEvents
-                (Http.get
-                    ([ model.backendURL ++ "/api/events?month="
-                     , (model.dates
-                            |> List.drop 7
-                            |> List.head
-                            |> Maybe.withDefault model.now
-                            |> toMonthString
-                            |> String.toLower
-                            |> String.split " "
-                            |> String.join "&year="
-                       )
-                     ]
-                        |> String.join ""
+            let
+                newDate =
+                    Just date
+
+                dates =
+                    generateArrayOfTheMonth newDate 0
+            in
+                ( { model
+                    | now = newDate
+                    , dates = dates
+                    , eventsProcess = Loading
+                  }
+                , Http.send NewEvents
+                    (Http.get
+                        ([ model.backendURL ++ "/api/events?month="
+                         , (dates
+                                |> List.drop 7
+                                |> List.head
+                                |> Maybe.withDefault newDate
+                                |> toMonthString
+                                |> String.toLower
+                                |> String.split " "
+                                |> String.join "&year="
+                           )
+                         ]
+                            |> String.join ""
+                        )
+                        eventsDecoder
                     )
-                    eventsDecoder
                 )
-            )
 
         ChangeCalendar n ->
-            ( { model
-                | offset = model.offset + n
-                , dates =
+            let
+                dates =
                     generateArrayOfTheMonth model.now (model.offset + n)
-              }
-            , Cmd.none
-            )
+            in
+                ( { model
+                    | offset = model.offset + n
+                    , dates = dates
+                  }
+                , Http.send NewEvents
+                    (Http.get
+                        ([ model.backendURL ++ "/api/events?month="
+                         , (dates
+                                |> List.drop 7
+                                |> List.head
+                                |> Maybe.withDefault model.now
+                                |> toMonthString
+                                |> String.toLower
+                                |> String.split " "
+                                |> String.join "&year="
+                           )
+                         ]
+                            |> String.join ""
+                        )
+                        eventsDecoder
+                    )
+                )
 
         NewEvents result ->
             case result of
