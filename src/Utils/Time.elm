@@ -30,12 +30,7 @@ import Time
 
 timeToString : Maybe Posix -> (Posix -> Int) -> String
 timeToString time func =
-    case time |> (Maybe.map func >> Maybe.withDefault 0 >> String.fromInt) of
-        "0" ->
-            " "
-
-        x ->
-            x
+    time |> (Maybe.map func >> Maybe.withDefault 0 >> String.fromInt)
 
 
 toCalendarStyle : Posix -> String
@@ -234,7 +229,7 @@ posixToLengthOfTheMonth posix =
 
 displayDate : Maybe Posix -> String
 displayDate time =
-    [ toMonthString time, timeToString time (toDay utc) ] |> String.join "  "
+    [ timeToString time (toDay utc), toMonthString time ] |> String.join "  "
 
 
 formatTime : Maybe Posix -> (Posix -> Int) -> String
