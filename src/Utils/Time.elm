@@ -244,7 +244,12 @@ displayTime date =
 
 toDayString : Maybe Posix -> String
 toDayString time =
-    timeToString time (toDay utc)
+    case timeToString time (toDay utc) of
+        "0" ->
+            " "
+
+        x ->
+            x
 
 
 generateArrayOfTheMonth : Maybe Posix -> Int -> List (Maybe Posix)
