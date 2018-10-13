@@ -229,7 +229,7 @@ posixToLengthOfTheMonth posix =
 
 displayDate : Maybe Posix -> String
 displayDate time =
-    [ timeToString time (toDay utc), toMonthString time ] |> String.join "  "
+    [ timeToString time (toDay utc) |> String.padLeft 2 '0', toMonthString time ] |> String.join "  "
 
 
 formatTime : Maybe Posix -> (Posix -> Int) -> String
