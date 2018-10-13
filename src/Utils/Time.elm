@@ -306,7 +306,7 @@ generateArrayOfTheMonth mposix diff =
 
                 lengthOfThisMonth : Int
                 lengthOfThisMonth =
-                    numOfDaysInTheMonthWithOffset 0
+                    numOfDaysInTheMonthWithOffset diff
 
                 totalLength : Int
                 totalLength =
