@@ -264,6 +264,7 @@ generateArrayOfTheMonth mposix diff =
                 yearWithOffset : Int -> Int
                 yearWithOffset d =
                     let
+                        month : Int
                         month =
                             thisMonthIntBeforeMod + d
                     in

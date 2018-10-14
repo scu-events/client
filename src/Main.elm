@@ -157,9 +157,11 @@ update msg model =
     case msg of
         Initialize date ->
             let
+                newDate : Maybe Posix
                 newDate =
                     Just date
 
+                dates : List (Maybe Posix)
                 dates =
                     generateArrayOfTheMonth newDate 0
             in
@@ -385,6 +387,7 @@ headerView model =
 footerView : Model -> Html Msg
 footerView model =
     let
+        btn_txt : String
         btn_txt =
             case model.mainView of
                 Events ->

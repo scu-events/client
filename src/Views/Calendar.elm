@@ -24,15 +24,18 @@ import Msg exposing (..)
 calendarView : List (Maybe Posix) -> List Event -> Maybe Event -> Html Msg
 calendarView dates events modalEvent =
     let
+        calendarHeader : List (Html Msg)
         calendarHeader =
             [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
                 |> List.map (\day -> div [ class "calendar-date" ] [ text day ])
 
+        calendarBody : List (Html Msg)
         calendarBody =
             dates
                 |> List.map
                     (\x ->
                         let
+                            current_events : List Event
                             current_events =
                                 events
                                     |> List.filter
@@ -43,6 +46,7 @@ calendarView dates events modalEvent =
                                                 == (x |> toDayString)
                                         )
 
+                            state : Bool
                             state =
                                 current_events |> List.isEmpty
                         in
